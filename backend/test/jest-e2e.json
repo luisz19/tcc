@@ -9,7 +9,11 @@
     "^.+\\.ts$": [
       "ts-jest",
       {
-        "useESM": true
+        "useESM": true,
+        "tsconfig": {
+          "module": "ES2022",
+          "moduleResolution": "Bundler"
+        }
       }
     ]
   },
