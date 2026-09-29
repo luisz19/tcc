@@ -1,15 +1,7 @@
-import './App.css'
-import { Button } from './components/ui/button'
+import Login from './pages/login'
 
 function App() {
-
-  return (
-    <>
-      <h1>Welcome to the App</h1>
-      <Button>Click Me</Button>
-        
-    </>
-  )
+  return <Login />
 }
 
 export default App

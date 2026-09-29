@@ -1,10 +1,5 @@
 import api from "./client";
-
-export interface User {
-  id: string;
-  name: string;
-  email: string;
-}
+import type { User } from "@/types/auth";
 
 interface LoginResponse {
   accessToken: string;
@@ -12,6 +7,16 @@ interface LoginResponse {
 
 export async function loginRequest(email: string, password: string) {
   const { data } = await api.post<LoginResponse>("/auth/login", {
+    email,
+    password,
+  });
+
+  return data;
+}
+
+export async function registerRequest(name: string, email: string, password: string) {
+  const { data } = await api.post<User>("/auth/register", {
+    name,
     email,
     password,
   });
