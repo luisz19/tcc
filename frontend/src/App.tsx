@@ -1,14 +1,14 @@
-import './App.css'
-import { Button } from './components/ui/button'
+import { useState } from 'react'
+import Login from './pages/login'
+import Register from './pages/Register'
 
 function App() {
+  const [page, setPage] = useState<'login' | 'register'>('login')
 
-  return (
-    <>
-      <h1>Welcome to the App</h1>
-      <Button>Click Me</Button>
-        
-    </>
+  return page === 'login' ? (
+    <Login onRegister={() => setPage('register')} />
+  ) : (
+    <Register onLogin={() => setPage('login')} />
   )
 }
 
