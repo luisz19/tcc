@@ -1,7 +1,7 @@
 import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
 import type { AuthContextData } from '@/types/auth';
 import type { User } from '@/types/auth';
-import { getProfile, loginRequest } from '@/api/auth';
+import { getProfile, loginRequest, registerRequest } from '@/api/auth';
 
 const AuthContext = createContext<AuthContextData | undefined>(undefined);
 
@@ -52,6 +52,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const register = async (name: string, email: string, password: string) => {
+    await registerRequest(name, email, password);
+    await login(email, password);
+  };
+
   const logout = () => {
     localStorage.removeItem('@TCC:token');
     setUser(null);
@@ -60,7 +65,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   return (
     <AuthContext.Provider
-      value={{ user, loading, isAuthenticated: user !== null, login, logout }}
+      value={{ user, loading, isAuthenticated: user !== null, login, register, logout }}
     >
       {children}
     </AuthContext.Provider>
