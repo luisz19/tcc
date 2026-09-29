@@ -8,7 +8,11 @@ import { Label } from '@/components/ui/label'
 import { useAuth } from '@/context/AuthContext'
 import '../App.css'
 
-function Login() {
+interface LoginProps {
+	onRegister: () => void
+}
+
+function Login({ onRegister }: LoginProps) {
 	const { user, loading, isAuthenticated, login } = useAuth()
 	const [email, setEmail] = useState('')
 	const [password, setPassword] = useState('')
@@ -132,6 +136,13 @@ function Login() {
 						{isSubmitting && <LoaderCircle className="animate-login-spin size-4" aria-hidden="true" />}
 						{isSubmitting ? 'Entrando...' : 'Entrar'}
 					</Button>
+
+					<p className="text-center text-sm leading-[22px] text-on-surface-variant">
+						Não tem uma conta?{' '}
+						<button className="font-semibold text-primary underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/25" type="button" onClick={onRegister}>
+							Registre-se
+						</button>
+					</p>
 				</form>
 			</section>
 		</main>
