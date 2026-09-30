@@ -10,6 +10,7 @@ import { appConfigSchema } from './config/config.types';
 import { TypedConfigService } from './config/typed-config.service';
 import { authConfig } from './config/auth.config';
 import { AuthModule } from './auth/auth.module';
+import { PackageModule } from './package/package.module';
 
 @Module({
   imports: [
@@ -31,6 +32,7 @@ import { AuthModule } from './auth/auth.module';
 
     UserModule,
     AuthModule,
+    PackageModule,
   ],
   controllers: [AppController],
   providers: [

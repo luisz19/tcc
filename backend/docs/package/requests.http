@@ -1,0 +1,51 @@
+@baseUrl = http://localhost:3000
+
+@contentType = application/json
+
+@accessToken = {{login.response.body.$.accessToken}}
+
+@packageId = {{createPackage.response.body.$.id}}
+
+### Login
+# @name login
+POST {{baseUrl}}/auth/login
+Content-Type: {{contentType}}
+
+{
+    "email": "john123123@example.com",
+    "password": "Password123!"
+}
+
+### Create package
+# @name createPackage
+POST {{baseUrl}}/packages/
+Content-Type: {{contentType}}
+Authorization: Bearer {{accessToken}}
+
+{
+    "name": "Testee",
+    "base_price": 100
+    
+}
+
+### Get all packages
+GET {{baseUrl}}/packages
+Authorization: Bearer {{accessToken}}
+
+### Get package by id
+GET {{baseUrl}}/packages/{{packageId}}
+Authorization: Bearer {{accessToken}}
+
+### Update Package by id
+PATCH {{baseUrl}}/packages/{{packageId}}
+Content-Type: {{contentType}}
+Authorization: Bearer {{accessToken}}
+
+{
+    "description": "teste",
+    "base_price": 150
+}
+
+### Delete Package by id
+DELETE {{baseUrl}}/packages/{{packageId}}
+Authorization: Bearer {{accessToken}}
