@@ -1,4 +1,4 @@
-import api from "./client";
+import api from "./api";
 import type { User } from "@/types/auth";
 
 interface LoginResponse {
