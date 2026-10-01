@@ -10,6 +10,11 @@ import type { Client } from '@/types/clients'
 import SearchInput from '@/components/common/SearchInput'
 import '../App.css'
 
+interface ClientsProps {
+	onCreateClient: () => void
+	onEditClient: (client: Client) => void
+}
+
 function getInitials(name: string) {
 	return name
 		.split(' ')
@@ -23,7 +28,7 @@ function formatPhone(phone: string) {
 	return phone || 'Telefone não informado'
 }
 
-function Clients() {
+function Clients({ onCreateClient, onEditClient }: ClientsProps) {
 	const { logout } = useAuth()
 	const [clients, setClients] = useState<Client[]>([])
 	const [search, setSearch] = useState('')
@@ -124,7 +129,20 @@ function Clients() {
 				{!isLoading && !errorMessage && filteredClients.length > 0 && (
 					<div className="grid gap-3" aria-label="Lista de clientes">
 						{filteredClients.map((client) => (
-							<Card className="border-0 bg-surface-container-lowest shadow-level-1 transition-shadow hover:shadow-level-2" key={client.id}>
+							<Card
+								className="cursor-pointer border-0 bg-surface-container-lowest shadow-level-1 transition-shadow hover:shadow-level-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
+								key={client.id}
+								onClick={() => onEditClient(client)}
+								onKeyDown={(event) => {
+									if (event.key === 'Enter' || event.key === ' ') {
+										event.preventDefault()
+										onEditClient(client)
+									}
+								}}
+								tabIndex={0}
+								role="button"
+								aria-label={`Editar cliente ${client.name}`}
+							>
 								<CardContent className="flex min-h-24 items-center gap-3 p-4">
 									<div className="grid size-12 shrink-0 place-items-center rounded-lg bg-primary-fixed text-sm font-semibold text-on-primary-fixed" aria-hidden="true">{getInitials(client.name)}</div>
 									<div className="min-w-0 flex-1">
@@ -144,7 +162,7 @@ function Clients() {
 				)}
 			</section>
 
-			<button className="fixed bottom-6 right-5 z-20 grid size-12 place-items-center rounded-lg bg-primary text-on-primary shadow-level-2 transition-transform hover:bg-primary-container hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 sm:bottom-8 sm:right-8" type="button" aria-label="Adicionar cliente" title="Adicionar cliente">
+			<button className="fixed bottom-6 right-5 z-20 grid size-12 place-items-center rounded-lg bg-primary text-on-primary shadow-level-2 transition-transform hover:-translate-y-0.5 hover:bg-primary-container focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 sm:bottom-8 sm:right-8" type="button" onClick={onCreateClient} aria-label="Adicionar cliente" title="Adicionar cliente">
 				<Plus className="size-6" aria-hidden="true" />
 			</button>
 		</main>
