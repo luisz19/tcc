@@ -16,14 +16,27 @@ export class ClientService {
     private readonly clientsRepository: Repository<Client>,
   ) {}
 
-  async findAll(userId: string): Promise<Client[]> {
+  async findAll(
+    userId: string,
+    filters: { name?: string; phone?: string } = {},
+  ): Promise<Client[]> {
     const query = this.clientsRepository.createQueryBuilder('clients');
     query.where('clients.userId = :userId', { userId });
+    if (filters.name) {
+      query.andWhere('LOWER(clients.name) LIKE LOWER(:name)', {
+        name: `%${filters.name}%`,
+      });
+    }
+    if (filters.phone) {
+      query.andWhere('clients.phone LIKE :phone', {
+        phone: `%${filters.phone}%`,
+      });
+    }
     return query.getMany();
   }
 
-  async findOneOrFail(id: string): Promise<Client> {
-    const clients = await this.clientsRepository.findOneBy({ id });
+  async findOneOrFail(id: string, userId: string): Promise<Client> {
+    const clients = await this.clientsRepository.findOneBy({ id, userId });
 
     if (!clients) {
       throw new NotFoundException();
@@ -32,8 +45,8 @@ export class ClientService {
     return clients;
   }
 
-  async findOne(id: string): Promise<Client> {
-    const clients = await this.findOneOrFail(id);
+  async findOne(id: string, userId: string): Promise<Client> {
+    const clients = await this.findOneOrFail(id, userId);
     return clients;
   }
 
@@ -51,22 +64,27 @@ export class ClientService {
       );
     }
 
-    const clients = this.clientsRepository.create(createClientDto);
+    const { userId, ...clientData } = createClientDto;
+    const clients = this.clientsRepository.create({
+      ...clientData,
+      userId,
+    });
     return await this.clientsRepository.save(clients);
   }
 
   async updateClient(
     id: string,
+    userId: string,
     updateClientDto: UpdateClientDto,
   ): Promise<Client> {
-    const clients = await this.findOneOrFail(id);
+    const clients = await this.findOneOrFail(id, userId);
 
     Object.assign(clients, updateClientDto);
     return this.clientsRepository.save(clients);
   }
 
-  async deleteClient(id: string): Promise<void> {
-    const clients = await this.findOneOrFail(id);
+  async deleteClient(id: string, userId: string): Promise<void> {
+    const clients = await this.findOneOrFail(id, userId);
 
     await this.clientsRepository.delete(clients.id);
   }

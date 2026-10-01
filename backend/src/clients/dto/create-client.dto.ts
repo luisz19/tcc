@@ -7,7 +7,19 @@ export class CreateClientDto {
   @IsString()
   name: string;
 
+  @IsNotEmpty()
   @IsString()
+  phone: string;
+
   @IsOptional()
-  icon: string;
+  @IsString()
+  email?: string;
+
+  @IsOptional()
+  @IsString()
+  address?: string;
+
+  @IsOptional()
+  @IsString()
+  personType?: string;
 }

@@ -1,5 +1,5 @@
 import { Exclude, Expose } from 'class-transformer';
-import { Client } from 'src/clients/entities/client.entity';
+import type { Client } from 'src/clients/entities/client.entity';
 
 import {
   Column,
@@ -18,7 +18,7 @@ export class User {
   @Expose()
   id: string;
 
-  @OneToMany(() => Client, (clients) => clients.user)
+  @OneToMany('Client', 'user')
   clients: Client[];
 
   @Column()

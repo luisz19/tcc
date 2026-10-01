@@ -8,6 +8,7 @@ import {
   Param,
   Patch,
   Post,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import { ClientService } from './client.service';
@@ -18,19 +19,26 @@ import { UpdateClientDto } from './dto/update-client';
 import { CurrentUserId } from 'src/user/decorators/current-user-id.decorator';
 import { AuthGuard } from 'src/auth/guards/auth.guard';
 
-@Controller('client')
+@Controller('clients')
 @UseGuards(AuthGuard)
 export class ClientController {
   constructor(private readonly clientService: ClientService) {}
 
   @Get()
-  public async findAll(@CurrentUserId() userId: string): Promise<Client[]> {
-    return await this.clientService.findAll(userId);
+  public async findAll(
+    @CurrentUserId() userId: string,
+    @Query('name') name?: string,
+    @Query('phone') phone?: string,
+  ): Promise<Client[]> {
+    return await this.clientService.findAll(userId, { name, phone });
   }
 
   @Get('/:id')
-  public async findOne(@Param() params: findOneParams): Promise<Client> {
-    return this.clientService.findOneOrFail(params.id);
+  public async findOne(
+    @Param() params: findOneParams,
+    @CurrentUserId() userId: string,
+  ): Promise<Client> {
+    return this.clientService.findOneOrFail(params.id, userId);
   }
 
   @Post()
@@ -48,13 +56,17 @@ export class ClientController {
   public async updateClient(
     @Param() params: findOneParams,
     @Body() updateClientDto: UpdateClientDto,
+    @CurrentUserId() userId: string,
   ): Promise<Client> {
-    return this.clientService.updateClient(params.id, updateClientDto);
+    return this.clientService.updateClient(params.id, userId, updateClientDto);
   }
 
   @Delete('/:id')
   @HttpCode(HttpStatus.NO_CONTENT)
-  public async deleteClient(@Param() params: findOneParams): Promise<void> {
-    return this.clientService.deleteClient(params.id);
+  public async deleteClient(
+    @Param() params: findOneParams,
+    @CurrentUserId() userId: string,
+  ): Promise<void> {
+    return this.clientService.deleteClient(params.id, userId);
   }
 }

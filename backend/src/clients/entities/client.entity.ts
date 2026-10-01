@@ -1,4 +1,4 @@
-import { User } from 'src/user/entities/user.entity';
+import type { User } from 'src/user/entities/user.entity';
 import {
   Column,
   CreateDateColumn,
@@ -16,7 +16,7 @@ export class Client {
   @Column()
   userId: string;
 
-  @ManyToOne(() => User, (user) => user.clients, { nullable: false })
+  @ManyToOne('User', 'clients', { nullable: false })
   user: User;
 
   @Column({
@@ -30,8 +30,9 @@ export class Client {
     type: 'varchar',
     length: 20,
     nullable: false,
+    name: 'telephone',
   })
-  telephone: string;
+  phone: string;
 
   @Column({
     type: 'varchar',
@@ -51,8 +52,9 @@ export class Client {
     type: 'varchar',
     length: 20,
     nullable: true,
+    name: 'person_type',
   })
-  person_type: string; // ajustar posteriormente para ENUM
+  personType: string; // mudar para enum posteriormente
 
   @CreateDateColumn()
   createdAt: Date;
