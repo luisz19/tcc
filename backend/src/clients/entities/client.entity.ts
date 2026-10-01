@@ -1,0 +1,62 @@
+import { User } from 'src/user/entities/user.entity';
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
+} from 'typeorm';
+
+@Entity()
+export class Client {
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
+
+  @Column()
+  userId: string;
+
+  @ManyToOne(() => User, (user) => user.clients, { nullable: false })
+  user: User;
+
+  @Column({
+    type: 'varchar',
+    length: 100,
+    nullable: false,
+  })
+  name: string;
+
+  @Column({
+    type: 'varchar',
+    length: 20,
+    nullable: false,
+  })
+  telephone: string;
+
+  @Column({
+    type: 'varchar',
+    length: 100,
+    nullable: true,
+  })
+  email: string;
+
+  @Column({
+    type: 'varchar',
+    length: 200,
+    nullable: true,
+  })
+  address: string;
+
+  @Column({
+    type: 'varchar',
+    length: 20,
+    nullable: true,
+  })
+  person_type: string; // ajustar posteriormente para ENUM
+
+  @CreateDateColumn()
+  createdAt: Date;
+
+  @UpdateDateColumn()
+  updatedAt: Date;
+}
