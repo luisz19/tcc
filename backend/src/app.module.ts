@@ -11,6 +11,7 @@ import { TypedConfigService } from './config/typed-config.service';
 import { authConfig } from './config/auth.config';
 import { AuthModule } from './auth/auth.module';
 import { PackageModule } from './package/package.module';
+import { ClientModule } from './clients/client.module';
 
 @Module({
   imports: [
@@ -33,6 +34,7 @@ import { PackageModule } from './package/package.module';
     UserModule,
     AuthModule,
     PackageModule,
+    ClientModule,
   ],
   controllers: [AppController],
   providers: [

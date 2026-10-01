@@ -1,0 +1,53 @@
+@baseUrl = http://localhost:3000
+
+@contentType = application/json
+
+@accessToken = {{login.response.body.$.accessToken}}
+
+@clientId = {{createClient.response.body.$.id}}
+
+### Login
+# @name login
+POST {{baseUrl}}/auth/login
+Content-Type: {{contentType}}
+
+{
+    "email": "john123123@example.com",
+    "password": "Password123!"
+}
+
+### Create client
+# @name createClient
+POST {{baseUrl}}/clients/
+Content-Type: {{contentType}}
+Authorization: Bearer {{accessToken}}
+
+{
+    "name": "Testee",
+    "email": "testee@example.com",
+    "personType": "individual",
+    "phone": "1234567890",
+    "address": "123 Test St, Test City, Test State, 12345"
+}
+
+### Get all clients
+GET {{baseUrl}}/clients
+Authorization: Bearer {{accessToken}}
+
+### Get client by id
+GET {{baseUrl}}/clients/{{clientId}}
+Authorization: Bearer {{accessToken}}
+
+### Update Client by id
+PATCH {{baseUrl}}/clients/{{clientId}}
+Content-Type: {{contentType}}
+Authorization: Bearer {{accessToken}}
+
+{
+    "name": "Updated Testee",
+    "email": "updatedtestee@example.com"
+}
+
+### Delete Client by id
+DELETE {{baseUrl}}/clients/{{clientId}}
+Authorization: Bearer {{accessToken}}
