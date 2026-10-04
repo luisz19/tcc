@@ -1,6 +1,9 @@
-import { useState, type FormEvent } from 'react'
+import { useState } from 'react'
 import { isAxiosError } from 'axios'
+import { zodResolver } from '@hookform/resolvers/zod'
 import { Aperture, Eye, EyeOff, KeyRound, LoaderCircle, Mail } from 'lucide-react'
+import { useForm } from 'react-hook-form'
+import { z } from 'zod'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -12,13 +15,23 @@ interface LoginProps {
 	onRegister: () => void
 }
 
+const loginSchema = z.object({
+	email: z.string().trim().email('Informe um e-mail válido.'),
+	password: z.string().min(8, 'A senha deve ter pelo menos 8 caracteres.'),
+})
+
+type LoginFormData = z.infer<typeof loginSchema>
+
 function Login({ onRegister }: LoginProps) {
+	'use no memo'
+
 	const { user, loading, isAuthenticated, login } = useAuth()
-	const [email, setEmail] = useState('')
-	const [password, setPassword] = useState('')
 	const [showPassword, setShowPassword] = useState(false)
-	const [isSubmitting, setIsSubmitting] = useState(false)
 	const [errorMessage, setErrorMessage] = useState('')
+	const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<LoginFormData>({
+		resolver: zodResolver(loginSchema),
+		defaultValues: { email: 'john123123@example.com', password: 'Password123!' },
+	})
 
 	if (loading) {
 		return (
@@ -42,20 +55,16 @@ function Login({ onRegister }: LoginProps) {
 		)
 	}
 
-	async function handleSubmit(event: FormEvent<HTMLFormElement>) {
-		event.preventDefault()
+	async function onSubmit(data: LoginFormData) {
 		setErrorMessage('')
-		setIsSubmitting(true)
 
 		try {
-			await login(email.trim(), password)
+			await login(data.email, data.password)
 		} catch (error) {
 			const message = isAxiosError(error) && error.response?.status === 401
 				? 'E-mail ou senha incorretos.'
 				: 'Não foi possível entrar agora. Tente novamente.'
 			setErrorMessage(message)
-		} finally {
-			setIsSubmitting(false)
 		}
 	}
 
@@ -74,7 +83,7 @@ function Login({ onRegister }: LoginProps) {
 					<p className="mt-2 text-sm leading-[22px] text-on-surface-variant">Acesse sua conta para gerenciar<br className="hidden sm:inline" /> seus projetos e clientes.</p>
 				</header>
 
-				<form className="grid gap-4" onSubmit={handleSubmit}>
+				<form className="grid gap-4" onSubmit={handleSubmit(onSubmit)}>
 					<div className="grid gap-2">
 						<Label className="text-[11px] font-bold uppercase tracking-[0.06em] leading-4 text-on-surface-variant" htmlFor="email">E-mail</Label>
 						<div className="relative">
@@ -82,16 +91,14 @@ function Login({ onRegister }: LoginProps) {
 							<Input
 								className="h-12 rounded-md border-outline-variant bg-surface-container-lowest/70 pl-10 pr-11 text-sm text-on-surface placeholder:text-outline focus-visible:border-primary focus-visible:ring-primary/15"
 								id="email"
-								name="email"
 								type="email"
 								autoComplete="email"
 								placeholder="seu@email.com"
-								value={email}
-								onChange={(event) => setEmail(event.target.value)}
-								required
-								aria-invalid={Boolean(errorMessage)}
+								aria-invalid={Boolean(errors.email || errorMessage)}
+								{...register('email')}
 							/>
 						</div>
+						{errors.email && <p className="text-xs text-error">{errors.email.message}</p>}
 					</div>
 
 					<div className="grid gap-2">
@@ -101,15 +108,11 @@ function Login({ onRegister }: LoginProps) {
 							<Input
 								className="h-12 rounded-md border-outline-variant bg-surface-container-lowest/70 pl-10 pr-11 text-sm text-on-surface placeholder:text-outline focus-visible:border-primary focus-visible:ring-primary/15"
 								id="password"
-								name="password"
 								type={showPassword ? 'text' : 'password'}
 								autoComplete="current-password"
 								placeholder="••••••••"
-								value={password}
-								onChange={(event) => setPassword(event.target.value)}
-								minLength={8}
-								required
-								aria-invalid={Boolean(errorMessage)}
+								aria-invalid={Boolean(errors.password || errorMessage)}
+								{...register('password')}
 							/>
 							<button
 								className="absolute right-2 top-1/2 grid size-8 -translate-y-1/2 place-items-center rounded-sm text-outline transition-colors hover:bg-surface-container hover:text-on-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/25"
@@ -120,6 +123,7 @@ function Login({ onRegister }: LoginProps) {
 								{showPassword ? <EyeOff className="size-[18px]" aria-hidden="true" /> : <Eye className="size-[18px]" aria-hidden="true" />}
 							</button>
 						</div>
+						{errors.password && <p className="text-xs text-error">{errors.password.message}</p>}
 					</div>
 
 					<div className="flex justify-end -mt-0.5">

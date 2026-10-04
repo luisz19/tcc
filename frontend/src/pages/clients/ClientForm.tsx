@@ -1,6 +1,9 @@
-import { useState, type FormEvent } from 'react'
+import { useState } from 'react'
 import { isAxiosError } from 'axios'
+import { zodResolver } from '@hookform/resolvers/zod'
 import { ArrowLeft, Building2, LoaderCircle, Mail, MapPin, Phone, UserRound } from 'lucide-react'
+import { useForm } from 'react-hook-form'
+import { z } from 'zod'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -15,27 +18,41 @@ interface ClientFormProps {
 	onSaved: () => void
 }
 
-function ClientForm({ client, onCancel, onSaved }: ClientFormProps) {
-	const isEditing = Boolean(client)
-	const [name, setName] = useState(client?.name ?? '')
-	const [phone, setPhone] = useState(client?.phone ?? '')
-	const [email, setEmail] = useState(client?.email ?? '')
-	const [address, setAddress] = useState(client?.address ?? '')
-	const [personType, setPersonType] = useState(client?.personType ?? 'individual')
-	const [isSubmitting, setIsSubmitting] = useState(false)
-	const [errorMessage, setErrorMessage] = useState('')
+const clientSchema = z.object({
+	name: z.string().trim().min(2, 'Informe o nome do cliente.'),
+	phone: z.string().trim().min(1, 'Informe o telefone.'),
+	email: z.string().trim().email('Informe um e-mail válido.').or(z.literal('')),
+	address: z.string().trim(),
+	personType: z.enum(['individual', 'company']),
+})
 
-	async function handleSubmit(event: FormEvent<HTMLFormElement>) {
-		event.preventDefault()
+type ClientFormData = z.infer<typeof clientSchema>
+
+function ClientForm({ client, onCancel, onSaved }: ClientFormProps) {
+	'use no memo'
+
+	const isEditing = Boolean(client)
+	const [errorMessage, setErrorMessage] = useState('')
+	const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<ClientFormData>({
+		resolver: zodResolver(clientSchema),
+		defaultValues: {
+			name: client?.name ?? '',
+			phone: client?.phone ?? '',
+			email: client?.email ?? '',
+			address: client?.address ?? '',
+			personType: client?.personType === 'company' ? 'company' : 'individual',
+		},
+	})
+
+async function onSubmit(data: ClientFormData) {
 		setErrorMessage('')
-		setIsSubmitting(true)
 
 		const payload: ClientPayload = {
-			name: name.trim(),
-			phone: phone.trim(),
-			email: email.trim() || undefined,
-			address: address.trim() || undefined,
-			personType: personType || undefined,
+			name: data.name,
+			phone: data.phone,
+			email: data.email || undefined,
+			address: data.address || undefined,
+			personType: data.personType,
 		}
 
 		try {
@@ -49,8 +66,6 @@ function ClientForm({ client, onCancel, onSaved }: ClientFormProps) {
 			setErrorMessage(isAxiosError(error) && error.response?.status === 409
 				? 'Já existe um cliente com esse nome.'
 				: `Não foi possível ${isEditing ? 'atualizar' : 'cadastrar'} o cliente agora.`)
-		} finally {
-			setIsSubmitting(false)
 		}
 	}
 
@@ -74,36 +89,39 @@ function ClientForm({ client, onCancel, onSaved }: ClientFormProps) {
 					<p className="mt-1 text-sm leading-6 text-on-surface-variant">Preencha apenas os dados necessários para manter seus contatos organizados.</p>
 				</div>
 
-				<form className="grid gap-5" onSubmit={handleSubmit}>
+				<form className="grid gap-5" onSubmit={handleSubmit(onSubmit)}>
 					<div className="grid gap-2">
 						<Label htmlFor="client-name">Nome completo <span className="text-error">*</span></Label>
 						<div className="relative">
 							<UserRound className="pointer-events-none absolute left-3 top-1/2 z-10 size-[17px] -translate-y-1/2 text-outline" aria-hidden="true" />
-							<Input className="h-12 rounded-md border-outline-variant bg-surface-container-lowest pl-10 text-sm text-on-surface placeholder:text-outline focus-visible:border-primary focus-visible:ring-primary/15" id="client-name" name="name" value={name} onChange={(event) => setName(event.target.value)} placeholder="Ex.: Mariana Souza" required />
+							<Input className="h-12 rounded-md border-outline-variant bg-surface-container-lowest pl-10 text-sm text-on-surface placeholder:text-outline focus-visible:border-primary focus-visible:ring-primary/15" id="client-name" placeholder="Ex.: Mariana Souza" aria-invalid={Boolean(errors.name)} {...register('name')} />
 						</div>
+						{errors.name && <p className="text-xs text-error">{errors.name.message}</p>}
 					</div>
 
 					<div className="grid gap-2">
 						<Label htmlFor="client-phone">Telefone <span className="text-error">*</span></Label>
 						<div className="relative">
 							<Phone className="pointer-events-none absolute left-3 top-1/2 z-10 size-[17px] -translate-y-1/2 text-outline" aria-hidden="true" />
-							<Input className="h-12 rounded-md border-outline-variant bg-surface-container-lowest pl-10 text-sm text-on-surface placeholder:text-outline focus-visible:border-primary focus-visible:ring-primary/15" id="client-phone" name="phone" type="tel" value={phone} onChange={(event) => setPhone(event.target.value)} placeholder="(11) 99999-9999" required />
+							<Input className="h-12 rounded-md border-outline-variant bg-surface-container-lowest pl-10 text-sm text-on-surface placeholder:text-outline focus-visible:border-primary focus-visible:ring-primary/15" id="client-phone" type="tel" placeholder="(11) 99999-9999" aria-invalid={Boolean(errors.phone)} {...register('phone')} />
 						</div>
+						{errors.phone && <p className="text-xs text-error">{errors.phone.message}</p>}
 					</div>
 
 					<div className="grid gap-2">
 						<Label htmlFor="client-email">E-mail <span className="text-xs font-normal normal-case text-on-surface-variant">(opcional)</span></Label>
 						<div className="relative">
 							<Mail className="pointer-events-none absolute left-3 top-1/2 z-10 size-[17px] -translate-y-1/2 text-outline" aria-hidden="true" />
-							<Input className="h-12 rounded-md border-outline-variant bg-surface-container-lowest pl-10 text-sm text-on-surface placeholder:text-outline focus-visible:border-primary focus-visible:ring-primary/15" id="client-email" name="email" type="email" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="mariana@exemplo.com" />
+							<Input className="h-12 rounded-md border-outline-variant bg-surface-container-lowest pl-10 text-sm text-on-surface placeholder:text-outline focus-visible:border-primary focus-visible:ring-primary/15" id="client-email" type="email" placeholder="mariana@exemplo.com" aria-invalid={Boolean(errors.email)} {...register('email')} />
 						</div>
+						{errors.email && <p className="text-xs text-error">{errors.email.message}</p>}
 					</div>
 
 					<div className="grid gap-2">
 						<Label htmlFor="client-address">Endereço <span className="text-xs font-normal normal-case text-on-surface-variant">(opcional)</span></Label>
 						<div className="relative">
 							<MapPin className="pointer-events-none absolute left-3 top-1/2 z-10 size-[17px] -translate-y-1/2 text-outline" aria-hidden="true" />
-							<Input className="h-12 rounded-md border-outline-variant bg-surface-container-lowest pl-10 text-sm text-on-surface placeholder:text-outline focus-visible:border-primary focus-visible:ring-primary/15" id="client-address" name="address" value={address} onChange={(event) => setAddress(event.target.value)} placeholder="Rua, número, cidade e estado" />
+							<Input className="h-12 rounded-md border-outline-variant bg-surface-container-lowest pl-10 text-sm text-on-surface placeholder:text-outline focus-visible:border-primary focus-visible:ring-primary/15" id="client-address" placeholder="Rua, número, cidade e estado" {...register('address')} />
 						</div>
 					</div>
 
@@ -111,7 +129,7 @@ function ClientForm({ client, onCancel, onSaved }: ClientFormProps) {
 						<Label htmlFor="client-person-type">Tipo de cliente <span className="text-xs font-normal normal-case text-on-surface-variant">(opcional)</span></Label>
 						<div className="relative">
 							<Building2 className="pointer-events-none absolute left-3 top-1/2 z-10 size-[17px] -translate-y-1/2 text-outline" aria-hidden="true" />
-							<select className="h-12 w-full appearance-none rounded-md border border-outline-variant bg-surface-container-lowest pl-10 pr-4 text-sm text-on-surface outline-none focus:border-primary focus:ring-3 focus:ring-primary/15" id="client-person-type" name="personType" value={personType} onChange={(event) => setPersonType(event.target.value)}>
+							<select className="h-12 w-full appearance-none rounded-md border border-outline-variant bg-surface-container-lowest pl-10 pr-4 text-sm text-on-surface outline-none focus:border-primary focus:ring-3 focus:ring-primary/15" id="client-person-type" {...register('personType')}>
 								<option value="individual">Pessoa física</option>
 								<option value="company">Pessoa jurídica</option>
 							</select>
