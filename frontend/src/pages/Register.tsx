@@ -1,6 +1,9 @@
-import { useState, type FormEvent } from 'react'
+import { useState } from 'react'
 import { isAxiosError } from 'axios'
+import { zodResolver } from '@hookform/resolvers/zod'
 import { Aperture, Check, Circle, Eye, EyeOff, KeyRound, LoaderCircle, Mail, UserRound } from 'lucide-react'
+import { useForm, useWatch } from 'react-hook-form'
+import { z } from 'zod'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -12,50 +15,52 @@ interface RegisterProps {
 	onLogin: () => void
 }
 
+const registerSchema = z.object({
+	name: z.string().trim().min(2, 'Informe seu nome.'),
+	email: z.string().trim().email('Informe um e-mail válido.'),
+	password: z.string()
+		.min(6, 'A senha deve ter pelo menos 6 caracteres.')
+		.regex(/[A-Z]/, 'A senha precisa ter uma letra maiúscula.')
+		.regex(/[0-9]/, 'A senha precisa ter um número.')
+		.regex(/[^A-Za-z0-9]/, 'A senha precisa ter um caractere especial.'),
+	passwordConfirmation: z.string(),
+}).refine((data) => data.password === data.passwordConfirmation, {
+	message: 'As senhas precisam ser iguais.',
+	path: ['passwordConfirmation'],
+})
+
+type RegisterFormData = z.infer<typeof registerSchema>
+
 function Register({ onLogin }: RegisterProps) {
-	const { register } = useAuth()
-	const [name, setName] = useState('')
-	const [email, setEmail] = useState('')
-	const [password, setPassword] = useState('')
-	const [passwordConfirmation, setPasswordConfirmation] = useState('')
+	'use no memo'
+
+	const { register: registerUser } = useAuth()
 	const [showPassword, setShowPassword] = useState(false)
 	const [showPasswordConfirmation, setShowPasswordConfirmation] = useState(false)
-	const [isSubmitting, setIsSubmitting] = useState(false)
 	const [errorMessage, setErrorMessage] = useState('')
+	const { register, control, handleSubmit, formState: { errors, isSubmitting } } = useForm<RegisterFormData>({
+		resolver: zodResolver(registerSchema),
+		defaultValues: { name: '', email: '', password: '', passwordConfirmation: '' },
+	})
+	const password = useWatch({ control, name: 'password' })
 	const passwordRequirements = [
 		{ label: 'Pelo menos 6 caracteres', valid: password.length >= 6 },
 		{ label: 'Pelo menos 1 letra maiúscula', valid: /[A-Z]/.test(password) },
 		{ label: 'Pelo menos 1 número', valid: /[0-9]/.test(password) },
 		{ label: 'Pelo menos 1 caractere especial', valid: /[^A-Za-z0-9]/.test(password) },
 	]
-	const passwordIsValid = passwordRequirements.every((requirement) => requirement.valid)
 
-	async function handleSubmit(event: FormEvent<HTMLFormElement>) {
-		event.preventDefault()
+	async function onSubmit(data: RegisterFormData) {
 		setErrorMessage('')
 
-		if (password !== passwordConfirmation) {
-			setErrorMessage('As senhas precisam ser iguais.')
-			return
-		}
-
-		if (!passwordIsValid) {
-			setErrorMessage('A senha não atende a todos os requisitos.')
-			return
-		}
-
-		setIsSubmitting(true)
-
 		try {
-			await register(name.trim(), email.trim(), password)
+			await registerUser(data.name, data.email, data.password)
 			onLogin()
 		} catch (error) {
 			const message = isAxiosError(error) && error.response?.status === 409
 				? 'Este e-mail já está cadastrado.'
 				: 'Não foi possível criar sua conta agora. Tente novamente.'
 			setErrorMessage(message)
-		} finally {
-			setIsSubmitting(false)
 		}
 	}
 
@@ -74,32 +79,35 @@ function Register({ onLogin }: RegisterProps) {
 					<p className="mt-2 text-sm leading-[22px] text-on-surface-variant">Comece a organizar seus projetos<br className="hidden sm:inline" /> e clientes em um só lugar.</p>
 				</header>
 
-				<form className="grid gap-4" onSubmit={handleSubmit}>
+				<form className="grid gap-4" onSubmit={handleSubmit(onSubmit)}>
 					<div className="grid gap-2">
 						<Label className="text-[11px] font-bold uppercase tracking-[0.06em] leading-4 text-on-surface-variant" htmlFor="name">Nome</Label>
 						<div className="relative">
 							<UserRound className="pointer-events-none absolute left-3 top-1/2 z-10 size-[17px] -translate-y-1/2 text-outline" aria-hidden="true" />
-							<Input className="h-12 rounded-md border-outline-variant bg-surface-container-lowest/70 pl-10 text-sm text-on-surface placeholder:text-outline focus-visible:border-primary focus-visible:ring-primary/15" id="name" name="name" type="text" autoComplete="name" placeholder="Seu nome completo" value={name} onChange={(event) => setName(event.target.value)} minLength={2} required />
+							<Input className="h-12 rounded-md border-outline-variant bg-surface-container-lowest/70 pl-10 text-sm text-on-surface placeholder:text-outline focus-visible:border-primary focus-visible:ring-primary/15" id="name" type="text" autoComplete="name" placeholder="Seu nome completo" aria-invalid={Boolean(errors.name)} {...register('name')} />
 						</div>
+						{errors.name && <p className="text-xs text-error">{errors.name.message}</p>}
 					</div>
 
 					<div className="grid gap-2">
 						<Label className="text-[11px] font-bold uppercase tracking-[0.06em] leading-4 text-on-surface-variant" htmlFor="register-email">E-mail</Label>
 						<div className="relative">
 							<Mail className="pointer-events-none absolute left-3 top-1/2 z-10 size-[17px] -translate-y-1/2 text-outline" aria-hidden="true" />
-							<Input className="h-12 rounded-md border-outline-variant bg-surface-container-lowest/70 pl-10 text-sm text-on-surface placeholder:text-outline focus-visible:border-primary focus-visible:ring-primary/15" id="register-email" name="email" type="email" autoComplete="email" placeholder="seu@email.com" value={email} onChange={(event) => setEmail(event.target.value)} required />
+							<Input className="h-12 rounded-md border-outline-variant bg-surface-container-lowest/70 pl-10 text-sm text-on-surface placeholder:text-outline focus-visible:border-primary focus-visible:ring-primary/15" id="register-email" type="email" autoComplete="email" placeholder="seu@email.com" aria-invalid={Boolean(errors.email)} {...register('email')} />
 						</div>
+						{errors.email && <p className="text-xs text-error">{errors.email.message}</p>}
 					</div>
 
 					<div className="grid gap-2">
 						<Label className="text-[11px] font-bold uppercase tracking-[0.06em] leading-4 text-on-surface-variant" htmlFor="register-password">Senha</Label>
 						<div className="relative">
 							<KeyRound className="pointer-events-none absolute left-3 top-1/2 z-10 size-[17px] -translate-y-1/2 text-outline" aria-hidden="true" />
-							<Input className="h-12 rounded-md border-outline-variant bg-surface-container-lowest/70 pl-10 pr-11 text-sm text-on-surface placeholder:text-outline focus-visible:border-primary focus-visible:ring-primary/15" id="register-password" name="password" type={showPassword ? 'text' : 'password'} autoComplete="new-password" placeholder="••••••••" value={password} onChange={(event) => setPassword(event.target.value)} minLength={6} required aria-describedby="password-requirements" />
+							<Input className="h-12 rounded-md border-outline-variant bg-surface-container-lowest/70 pl-10 pr-11 text-sm text-on-surface placeholder:text-outline focus-visible:border-primary focus-visible:ring-primary/15" id="register-password" type={showPassword ? 'text' : 'password'} autoComplete="new-password" placeholder="••••••••" aria-describedby="password-requirements" aria-invalid={Boolean(errors.password)} {...register('password')} />
 							<button className="absolute right-2 top-1/2 grid size-8 -translate-y-1/2 place-items-center rounded-sm text-outline transition-colors hover:bg-surface-container hover:text-on-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/25" type="button" onClick={() => setShowPassword((visible) => !visible)} aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'}>
 								{showPassword ? <EyeOff className="size-[18px]" aria-hidden="true" /> : <Eye className="size-[18px]" aria-hidden="true" />}
 							</button>
 						</div>
+						{errors.password && <p className="text-xs text-error">{errors.password.message}</p>}
 						<ul id="password-requirements" className="grid gap-1 pt-1 text-xs leading-4" aria-live="polite">
 							{passwordRequirements.map((requirement) => {
 								const hasStarted = password.length > 0
@@ -119,11 +127,12 @@ function Register({ onLogin }: RegisterProps) {
 						<Label className="text-[11px] font-bold uppercase tracking-[0.06em] leading-4 text-on-surface-variant" htmlFor="password-confirmation">Confirmar senha</Label>
 						<div className="relative">
 							<KeyRound className="pointer-events-none absolute left-3 top-1/2 z-10 size-[17px] -translate-y-1/2 text-outline" aria-hidden="true" />
-							<Input className="h-12 rounded-md border-outline-variant bg-surface-container-lowest/70 pl-10 pr-11 text-sm text-on-surface placeholder:text-outline focus-visible:border-primary focus-visible:ring-primary/15" id="password-confirmation" name="passwordConfirmation" type={showPasswordConfirmation ? 'text' : 'password'} autoComplete="new-password" placeholder="••••••••" value={passwordConfirmation} onChange={(event) => setPasswordConfirmation(event.target.value)} minLength={6} required aria-invalid={Boolean(errorMessage)} />
+							<Input className="h-12 rounded-md border-outline-variant bg-surface-container-lowest/70 pl-10 pr-11 text-sm text-on-surface placeholder:text-outline focus-visible:border-primary focus-visible:ring-primary/15" id="password-confirmation" type={showPasswordConfirmation ? 'text' : 'password'} autoComplete="new-password" placeholder="••••••••" aria-invalid={Boolean(errors.passwordConfirmation || errorMessage)} {...register('passwordConfirmation')} />
 							<button className="absolute right-2 top-1/2 grid size-8 -translate-y-1/2 place-items-center rounded-sm text-outline transition-colors hover:bg-surface-container hover:text-on-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/25" type="button" onClick={() => setShowPasswordConfirmation((visible) => !visible)} aria-label={showPasswordConfirmation ? 'Ocultar confirmação de senha' : 'Mostrar confirmação de senha'}>
 								{showPasswordConfirmation ? <EyeOff className="size-[18px]" aria-hidden="true" /> : <Eye className="size-[18px]" aria-hidden="true" />}
 							</button>
 						</div>
+						{errors.passwordConfirmation && <p className="text-xs text-error">{errors.passwordConfirmation.message}</p>}
 					</div>
 
 					{errorMessage && <Alert variant="destructive" className="border-error/25 bg-error-container text-on-error-container"><AlertDescription>{errorMessage}</AlertDescription></Alert>}
