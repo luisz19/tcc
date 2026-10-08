@@ -7,6 +7,7 @@ import {
   ManyToOne,
   OneToOne,
   PrimaryGeneratedColumn,
+  JoinColumn,
   UpdateDateColumn,
 } from 'typeorm';
 import { ProjectStatus } from '../model/project.model';
@@ -30,9 +31,13 @@ export class Project {
   })
   package: Package | null;
 
+  @Column()
+  clientId: string;
+
   @ManyToOne(() => Client, (client) => client.projects, {
     nullable: false,
   })
+  @JoinColumn({ name: 'clientId' })
   client: Client;
 
   @Column({

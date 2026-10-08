@@ -22,8 +22,8 @@ export class ProjectService {
     return query.getMany();
   }
 
-  async findOneOrFail(id: string): Promise<Project> {
-    const project = await this.projectRepository.findOneBy({ id });
+  async findOneOrFail(id: string, userId: string): Promise<Project> {
+    const project = await this.projectRepository.findOneBy({ id, userId });
 
     if (!project) {
       throw new NotFoundException();
@@ -32,15 +32,15 @@ export class ProjectService {
     return project;
   }
 
-  async findOne(id: string): Promise<Project> {
-    const project = await this.findOneOrFail(id);
+  async findOne(id: string, userId: string): Promise<Project> {
+    const project = await this.findOneOrFail(id, userId);
     return project;
   }
 
   async createProject(createProjectDto: CreateProjectDto): Promise<Project> {
     const existingProject = await this.projectRepository.findOne({
       where: {
-        title: createProjectDto.name,
+        title: createProjectDto.title,
         userId: createProjectDto.userId,
       },
     });
@@ -57,16 +57,17 @@ export class ProjectService {
 
   async updateProject(
     id: string,
+    userId: string,
     updateProjectDto: UpdateProjectDto,
   ): Promise<Project> {
-    const project = await this.findOneOrFail(id);
+    const project = await this.findOneOrFail(id, userId);
 
     Object.assign(project, updateProjectDto);
     return this.projectRepository.save(project);
   }
 
-  async deleteProject(id: string): Promise<void> {
-    const project = await this.findOneOrFail(id);
+  async deleteProject(id: string, userId: string): Promise<void> {
+    const project = await this.findOneOrFail(id, userId);
 
     await this.projectRepository.delete(project.id);
   }

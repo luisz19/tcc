@@ -29,8 +29,11 @@ export class ProjectController {
   }
 
   @Get('/:id')
-  public async findOne(@Param() params: findOneParams): Promise<Project> {
-    return this.projectService.findOneOrFail(params.id);
+  public async findOne(
+    @Param() params: findOneParams,
+    @CurrentUserId() userId: string,
+  ): Promise<Project> {
+    return this.projectService.findOneOrFail(params.id, userId);
   }
 
   @Post()
@@ -48,13 +51,17 @@ export class ProjectController {
   public async updateProject(
     @Param() params: findOneParams,
     @Body() updateProjectDto: UpdateProjectDto,
+    @CurrentUserId() userId: string,
   ): Promise<Project> {
-    return this.projectService.updateProject(params.id, updateProjectDto);
+    return this.projectService.updateProject(params.id, userId, updateProjectDto);
   }
 
   @Delete('/:id')
   @HttpCode(HttpStatus.NO_CONTENT)
-  public async deleteProject(@Param() params: findOneParams): Promise<void> {
-    return this.projectService.deleteProject(params.id);
+  public async deleteProject(
+    @Param() params: findOneParams,
+    @CurrentUserId() userId: string,
+  ): Promise<void> {
+    return this.projectService.deleteProject(params.id, userId);
   }
 }
