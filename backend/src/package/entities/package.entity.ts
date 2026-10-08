@@ -1,7 +1,11 @@
+import { Project } from 'src/project/entities/project.entity';
+import { User } from 'src/user/entities/user.entity';
 import {
   Column,
   CreateDateColumn,
   Entity,
+  ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
@@ -13,6 +17,12 @@ export class Package {
 
   @Column()
   userId: string;
+
+  @ManyToOne(() => User, (user) => user.packages, { nullable: true })
+  user: User;
+
+  @OneToMany(() => Project, (project) => project.package)
+  projects: Project[];
 
   @Column({
     type: 'varchar',
