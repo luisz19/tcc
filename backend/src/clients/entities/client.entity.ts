@@ -1,9 +1,11 @@
+import { Project } from 'src/project/entities/project.entity';
 import type { User } from 'src/user/entities/user.entity';
 import {
   Column,
   CreateDateColumn,
   Entity,
   ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
@@ -18,6 +20,9 @@ export class Client {
 
   @ManyToOne('User', 'clients', { nullable: false })
   user: User;
+
+  @OneToMany(() => Project, (project) => project.client)
+  projects: Project[];
 
   @Column({
     type: 'varchar',

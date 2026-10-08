@@ -12,6 +12,7 @@ import { authConfig } from './config/auth.config';
 import { AuthModule } from './auth/auth.module';
 import { PackageModule } from './package/package.module';
 import { ClientModule } from './clients/client.module';
+import { ProjectModule } from './project/project.module';
 
 @Module({
   imports: [
@@ -35,6 +36,7 @@ import { ClientModule } from './clients/client.module';
     AuthModule,
     PackageModule,
     ClientModule,
+    ProjectModule,
   ],
   controllers: [AppController],
   providers: [
