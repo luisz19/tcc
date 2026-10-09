@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { isAxiosError } from 'axios'
-import { ChevronRight, LoaderCircle, Plus, Search, UserRound } from 'lucide-react'
+import { BriefcaseBusiness, ChevronRight, LoaderCircle, Plus, Search, UserRound } from 'lucide-react'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
@@ -11,6 +11,7 @@ import SearchInput from '@/components/common/SearchInput'
 import '../App.css'
 
 interface ClientsProps {
+	onOpenProjects: () => void
 	onCreateClient: () => void
 	onEditClient: (client: Client) => void
 }
@@ -28,7 +29,7 @@ function formatPhone(phone: string) {
 	return phone || 'Telefone não informado'
 }
 
-function Clients({ onCreateClient, onEditClient }: ClientsProps) {
+function Clients({ onOpenProjects, onCreateClient, onEditClient }: ClientsProps) {
 	const { logout } = useAuth()
 	const [clients, setClients] = useState<Client[]>([])
 	const [search, setSearch] = useState('')
@@ -81,15 +82,14 @@ function Clients({ onCreateClient, onEditClient }: ClientsProps) {
 			<header className="sticky top-0 z-20 border-b border-surface-container bg-surface/95 backdrop-blur-sm">
 				<div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between px-5 sm:px-8">
 					<h1 className="text-xl font-semibold leading-7 text-on-surface">Clientes</h1>
-					<button
-						className="grid size-10 place-items-center rounded-full bg-primary text-on-primary transition-colors hover:bg-primary-container focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
-						type="button"
-						onClick={logout}
-						aria-label="Sair da conta"
-						title="Sair da conta"
-					>
-						<UserRound className="size-[18px]" aria-hidden="true" />
-					</button>
+					<div className="flex items-center gap-2">
+						<button className="grid size-10 place-items-center rounded-full text-on-surface-variant transition-colors hover:bg-surface-container focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30" type="button" onClick={onOpenProjects} aria-label="Abrir projetos" title="Abrir projetos">
+							<BriefcaseBusiness className="size-[18px]" aria-hidden="true" />
+						</button>
+						<button className="grid size-10 place-items-center rounded-full bg-primary text-on-primary transition-colors hover:bg-primary-container focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30" type="button" onClick={logout} aria-label="Sair da conta" title="Sair da conta">
+							<UserRound className="size-[18px]" aria-hidden="true" />
+						</button>
+					</div>
 				</div>
 			</header>
 
