@@ -1,0 +1,58 @@
+@baseUrl = http://localhost:3000
+
+@contentType = application/json
+
+@accessToken = {{login.response.body.$.accessToken}}
+
+@projectId = {{createProject.response.body.$.id}}
+
+@clientId = "a6f1bfb1-3401-4199-bdf1-e9201116ea52"
+
+### Login
+# @name login
+POST {{baseUrl}}/auth/login
+Content-Type: {{contentType}}
+
+{
+    "email": "john123123@example.com",
+    "password": "Password123!"
+}
+
+### Create project
+# @name createProject
+POST {{baseUrl}}/projects/
+Content-Type: {{contentType}}
+Authorization: Bearer {{accessToken}}
+
+{
+    "title": "Testee",
+    "notes": "Testee",
+    "agreed_price": 100,
+    "location": "Testee",
+    "clientId": "{{clientId}}"
+
+}
+
+
+### Get all projects
+GET {{baseUrl}}/projects
+Authorization: Bearer {{accessToken}}
+
+### Get project by id
+GET {{baseUrl}}/projects/{{projectId}}
+Authorization: Bearer {{accessToken}}
+
+### Update Project by id
+PATCH {{baseUrl}}/projects/{{projectId}}
+Content-Type: {{contentType}}
+Authorization: Bearer {{accessToken}}
+
+{
+    "notes": "teste",
+    "agreed_price": 150
+}
+
+
+### Delete Project by id
+DELETE {{baseUrl}}/projects/{{projectId}}
+Authorization: Bearer {{accessToken}}
