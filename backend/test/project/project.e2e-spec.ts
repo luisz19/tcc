@@ -52,10 +52,30 @@ describe('Projects (e2e)', () => {
     return response.body.id as string;
   }
 
+  async function createPackage(token: string, overrides = {}) {
+    const payload = {
+      name: `Test Package ${userSequence}-${Date.now()}`,
+      description: 'Test Description',
+      base_price: 200.0,
+      ...overrides,
+    };
+
+    const response = await request(testSetup.app.getHttpServer())
+      .post('/packages')
+      .set('Authorization', `Bearer ${token}`)
+      .send(payload)
+      .expect(201);
+
+    return response.body.id as string;
+  }
+
   async function createProject(token: string, overrides = {}) {
     const clientId = await createClient(token);
+    const packageId = await createPackage(token);
+
     const payload = {
       clientId,
+      packageId,
       title: 'New Project',
       local: 'New Location',
       date: '2023-01-01',
@@ -189,5 +209,32 @@ describe('Projects (e2e)', () => {
       .get(`/projects/${id}`)
       .set('Authorization', `Bearer ${userBToken}`)
       .expect(404);
+  });
+
+  it('adicionar pacote a um projeto', async () => {
+    const token = await authenticate();
+    const { id } = await createProject(token, {
+      title: 'Project with Package',
+      packageId: null,
+    });
+
+    const packageId = await createPackage(token, { name: 'Test Package' });
+
+    await request(testSetup.app.getHttpServer())
+      .patch(`/projects/${id}`)
+      .set('Authorization', `Bearer ${token}`)
+      .send({ packageId })
+      .expect(200)
+      .expect((response) => {
+        expect(response.body.packageId).toBe(packageId);
+      });
+
+    await request(testSetup.app.getHttpServer())
+      .get(`/projects/${id}`)
+      .set('Authorization', `Bearer ${token}`)
+      .expect(200)
+      .expect((response) => {
+        expect(response.body.packageId).toBe(packageId);
+      });
   });
 });

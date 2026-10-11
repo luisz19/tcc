@@ -1,4 +1,11 @@
-import { IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
+import {
+  IsEnum,
+  IsNotEmpty,
+  IsNumber,
+  IsOptional,
+  IsString,
+} from 'class-validator';
+import { ProjectStatus } from '../model/project.model';
 
 export class CreateProjectDto {
   userId: string;
@@ -16,6 +23,10 @@ export class CreateProjectDto {
   local?: string;
 
   @IsOptional()
+  @IsEnum(ProjectStatus)
+  status?: ProjectStatus;
+
+  @IsOptional()
   @IsString()
   date?: string;
 
@@ -26,4 +37,8 @@ export class CreateProjectDto {
   @IsOptional()
   @IsNumber()
   agreed_price?: number;
+
+  @IsOptional()
+  @IsString()
+  packageId?: string;
 }

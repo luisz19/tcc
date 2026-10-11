@@ -5,7 +5,6 @@ import {
   CreateDateColumn,
   Entity,
   ManyToOne,
-  OneToOne,
   PrimaryGeneratedColumn,
   JoinColumn,
   UpdateDateColumn,
@@ -30,6 +29,11 @@ export class Project {
     nullable: true,
   })
   package: Package | null;
+
+  @Column({
+    nullable: true,
+  })
+  packageId: string;
 
   @Column()
   clientId: string;
@@ -70,6 +74,7 @@ export class Project {
     type: 'enum',
     enum: ProjectStatus,
     default: ProjectStatus.PENDING,
+    nullable: true,
   })
   status: ProjectStatus;
 
