@@ -1,13 +1,15 @@
 import { useEffect, useState } from 'react'
 import { isAxiosError } from 'axios'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { ArrowLeft, CalendarDays, DollarSign, LoaderCircle, MapPin, UserRound } from 'lucide-react'
+import { ArrowLeft, BriefcaseBusiness, CalendarDays, DollarSign, LoaderCircle, MapPin, UserRound } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { getClients } from '@/api/clients'
+import { getPackages } from '@/api/package'
 import { createProject, updateProject, type ProjectPayload } from '@/api/project'
 import type { Client } from '@/types/clients'
 import type { Project } from '@/types/projects'
+import type { Package } from '@/types/packages'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -23,7 +25,7 @@ interface ProjectFormProps {
 const projectSchema = z.object({
 	clientId: z.string().min(1, 'Selecione um cliente.'),
 	title: z.string().trim().min(2, 'Informe o título do projeto.'),
-    status: z.string().trim(),
+	packageId: z.string().trim(),
 	local: z.string().trim(),
 	date: z.string(),
 	notes: z.string().trim(),
@@ -35,13 +37,15 @@ type ProjectFormData = z.infer<typeof projectSchema>
 function ProjectForm({ project, onCancel, onSaved }: ProjectFormProps) {
 	const isEditing = Boolean(project)
 	const [clients, setClients] = useState<Client[]>([])
-	const [isLoadingClients, setIsLoadingClients] = useState(true)
+	const [packages, setPackages] = useState<Package[]>([])
+	const [isLoadingOptions, setIsLoadingOptions] = useState(true)
 	const [errorMessage, setErrorMessage] = useState('')
 	const { register, setValue, handleSubmit, formState: { errors, isSubmitting } } = useForm<ProjectFormData>({
 		resolver: zodResolver(projectSchema),
 		defaultValues: {
 			clientId: project?.clientId ?? '',
 			title: project?.title ?? '',
+			packageId: project?.packageId ?? '',
 			local: project?.local ?? '',
 			date: project?.date ?? '',
 			notes: project?.notes ?? '',
@@ -52,35 +56,40 @@ function ProjectForm({ project, onCancel, onSaved }: ProjectFormProps) {
 	useEffect(() => {
 		let isMounted = true
 
-		void getClients()
-			.then((data) => {
+		void Promise.all([getClients(), getPackages()])
+			.then(([clientData, packageData]) => {
 				if (isMounted) {
-					setClients(data)
+					setClients(clientData)
+					setPackages(packageData)
 					if (project?.clientId) {
 						setValue('clientId', project.clientId)
+					}
+					if (project?.packageId) {
+						setValue('packageId', project.packageId)
 					}
 				}
 			})
 			.catch(() => {
 				if (isMounted) {
-					setErrorMessage('Não foi possível carregar os clientes.')
+					setErrorMessage('Não foi possível carregar os clientes e pacotes.')
 				}
 			})
 			.finally(() => {
 				if (isMounted) {
-					setIsLoadingClients(false)
+					setIsLoadingOptions(false)
 				}
 			})
 
 		return () => {
 			isMounted = false
 		}
-	}, [project?.clientId, setValue])
+	}, [project?.clientId, project?.packageId, setValue])
 
 	async function onSubmit(data: ProjectFormData) {
 		setErrorMessage('')
 		const payload: ProjectPayload = {
 			clientId: data.clientId,
+			packageId: data.packageId || undefined,
 			title: data.title,
 			local: data.local || undefined,
 			date: data.date || undefined,
@@ -127,12 +136,24 @@ function ProjectForm({ project, onCancel, onSaved }: ProjectFormProps) {
 						<Label htmlFor="project-client">Cliente <span className="text-error">*</span></Label>
 						<div className="relative">
 							<UserRound className="pointer-events-none absolute left-3 top-1/2 z-10 size-[17px] -translate-y-1/2 text-outline" aria-hidden="true" />
-							<select className="h-12 w-full appearance-none rounded-md border border-outline-variant bg-surface-container-lowest pl-10 pr-4 text-sm text-on-surface outline-none focus:border-primary focus:ring-3 focus:ring-primary/15" id="project-client" disabled={isLoadingClients} aria-invalid={Boolean(errors.clientId)} {...register('clientId')}>
-								<option value="">{isLoadingClients ? 'Carregando clientes...' : 'Selecione um cliente'}</option>
+							<select className="h-12 w-full appearance-none rounded-md border border-outline-variant bg-surface-container-lowest pl-10 pr-4 text-sm text-on-surface outline-none focus:border-primary focus:ring-3 focus:ring-primary/15" id="project-client" disabled={isLoadingOptions} aria-invalid={Boolean(errors.clientId)} {...register('clientId')}>
+								<option value="">{isLoadingOptions ? 'Carregando clientes...' : 'Selecione um cliente'}</option>
 								{clients.map((client) => <option value={client.id} key={client.id}>{client.name}</option>)}
 							</select>
 						</div>
 						{errors.clientId && <p className="text-xs text-error">{errors.clientId.message}</p>}
+					</div>
+
+					<div className="grid gap-2">
+						<Label htmlFor="project-package">Pacote</Label>
+						<div className="relative">
+							<BriefcaseBusiness className="pointer-events-none absolute left-3 top-1/2 z-10 size-[17px] -translate-y-1/2 text-outline" aria-hidden="true" />
+							<select className="h-12 w-full appearance-none rounded-md border border-outline-variant bg-surface-container-lowest pl-10 pr-4 text-sm text-on-surface outline-none focus:border-primary focus:ring-3 focus:ring-primary/15" id="project-package" disabled={isLoadingOptions} aria-invalid={Boolean(errors.packageId)} {...register('packageId')}>
+								<option value="">{isLoadingOptions ? 'Carregando pacotes...' : 'Nenhum pacote selecionado'}</option>
+								{packages.map((packageItem) => <option value={packageItem.id} key={packageItem.id}>{packageItem.name}</option>)}
+							</select>
+						</div>
+						{errors.packageId && <p className="text-xs text-error">{errors.packageId.message}</p>}
 					</div>
 
 					<div className="grid gap-2">
@@ -176,7 +197,7 @@ function ProjectForm({ project, onCancel, onSaved }: ProjectFormProps) {
 
 					<div className="flex flex-col-reverse gap-3 pt-2 sm:flex-row sm:justify-end">
 						<Button className="h-12 sm:min-w-28" variant="outline" type="button" onClick={onCancel}>Cancelar</Button>
-						<Button className="h-12 bg-primary text-on-primary hover:bg-primary-container sm:min-w-36" type="submit" disabled={isSubmitting || isLoadingClients}>
+						<Button className="h-12 bg-primary text-on-primary hover:bg-primary-container sm:min-w-36" type="submit" disabled={isSubmitting || isLoadingOptions}>
 							{isSubmitting && <LoaderCircle className="animate-login-spin size-4" aria-hidden="true" />}
 							{isSubmitting ? 'Salvando...' : isEditing ? 'Salvar alterações' : 'Salvar projeto'}
 						</Button>

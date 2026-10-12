@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { isAxiosError } from 'axios'
-import { CalendarDays, CircleDollarSign, LoaderCircle, MapPin, Pencil, Plus, Trash2, UserRound, Users } from 'lucide-react'
+import { CalendarDays, CircleDollarSign, LoaderCircle, MapPin, Pencil, Plus, Trash2, UserRound } from 'lucide-react'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
@@ -17,7 +17,6 @@ import '../App.css'
 interface ProjectsProps {
 	onCreateProject: () => void
 	onEditProject: (project: Project) => void
-	onOpenClients: () => void
 }
 
 type StatusFilter = 'all' | ProjectStatus
@@ -61,7 +60,7 @@ function getErrorMessage(error: unknown) {
 		: 'Não foi possível carregar os projetos agora.'
 }
 
-function Projects({ onCreateProject, onEditProject, onOpenClients }: ProjectsProps) {
+function Projects({ onCreateProject, onEditProject }: ProjectsProps) {
 	const { logout } = useAuth()
 	const [projects, setProjects] = useState<Project[]>([])
 	const [clients, setClients] = useState<Client[]>([])
@@ -136,14 +135,9 @@ function Projects({ onCreateProject, onEditProject, onOpenClients }: ProjectsPro
 			<header className="sticky top-0 z-20 border-b border-surface-container bg-surface/95 backdrop-blur-sm">
 				<div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between px-5 sm:px-8">
 					<h1 className="text-xl font-semibold leading-7 text-on-surface">Projetos</h1>
-					<div className="flex items-center gap-2">
-						<button className="grid size-10 place-items-center rounded-full text-on-surface-variant transition-colors hover:bg-surface-container focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30" type="button" onClick={onOpenClients} aria-label="Abrir clientes" title="Abrir clientes">
-							<Users className="size-[18px]" aria-hidden="true" />
-						</button>
-						<button className="grid size-10 place-items-center rounded-full bg-primary text-on-primary transition-colors hover:bg-primary-container focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30" type="button" onClick={logout} aria-label="Sair da conta" title="Sair da conta">
-							<UserRound className="size-[18px]" aria-hidden="true" />
-						</button>
-					</div>
+					<button className="grid size-10 place-items-center rounded-full bg-primary text-on-primary transition-colors hover:bg-primary-container focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30" type="button" onClick={logout} aria-label="Sair da conta" title="Sair da conta">
+						<UserRound className="size-[18px]" aria-hidden="true" />
+					</button>
 				</div>
 			</header>
 
