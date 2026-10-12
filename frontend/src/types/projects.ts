@@ -12,6 +12,7 @@ export interface Project {
   id: string;
   userId?: string;
   clientId: string;
+  packageId?: string;
   title: string;
   date: string | null;
   local: string | null;
