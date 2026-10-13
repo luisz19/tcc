@@ -3,7 +3,7 @@ import type { Project } from "@/types/projects";
 
 export interface ProjectPayload {
   clientId: string;
-  packageId?: string;
+  packageId?: string | null;
   title: string;
   local?: string;
   date?: string;
