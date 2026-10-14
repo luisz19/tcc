@@ -4,7 +4,12 @@ export interface Client {
 	phone: string;
 	email: string | null;
 	address: string | null;
-	personType: string | null;
+	personType: PersonType | null;
 	createdAt: string;
 	updatedAt: string;
+}
+
+export enum PersonType {
+	INDIVIDUAL = 'individual',
+	COMPANY = 'company',
 }

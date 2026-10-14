@@ -1,0 +1,55 @@
+@baseUrl = http://localhost:3000
+
+@contentType = application/json
+
+@accessToken = {{login.response.body.$.accessToken}}
+
+# @projectId = {{createProject.response.body.$.id}}
+
+@financialId = 80b0988d-4595-46f0-b68c-9cd3b781f20c
+
+
+### Login
+# @name login
+POST {{baseUrl}}/auth/login
+Content-Type: {{contentType}}
+
+{
+    "email": "john123123@example.com",
+    "password": "Password123!"
+}
+
+### Create financial
+# @name createFinancial
+POST {{baseUrl}}/financial/
+Content-Type: {{contentType}}
+Authorization: Bearer {{accessToken}}
+
+{
+    "type": "income",
+    "description": "Income from sales",
+    "value": 1000,
+    "status": "pending",
+    "date": "2023-01-01"
+}
+
+### Get all financial
+GET {{baseUrl}}/financial
+Authorization: Bearer {{accessToken}}
+
+### Get financial by id
+GET {{baseUrl}}/financial/{{financialId}}
+Authorization: Bearer {{accessToken}}
+
+### Update Financial by id
+PATCH {{baseUrl}}/financial/{{financialId}}
+Content-Type: {{contentType}}
+Authorization: Bearer {{accessToken}}
+
+{
+    "value": 2000
+}
+
+### Delete Financial by id
+DELETE {{baseUrl}}/financial/{{financialId}}
+Authorization: Bearer {{accessToken}}

@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { createClient, updateClient, type ClientPayload } from '@/api/clients'
-import type { Client } from '@/types/clients'
+import { PersonType, type Client } from '@/types/clients'
 import '../../App.css'
 
 interface ClientFormProps {
@@ -23,7 +23,7 @@ const clientSchema = z.object({
 	phone: z.string().trim().min(1, 'Informe o telefone.'),
 	email: z.string().trim().email('Informe um e-mail válido.').or(z.literal('')),
 	address: z.string().trim(),
-	personType: z.enum(['individual', 'company']),
+	personType: z.enum(PersonType).default(PersonType.INDIVIDUAL).and(z.string().trim().min(1, 'Informe o tipo de cliente.')),
 })
 
 type ClientFormData = z.infer<typeof clientSchema>
@@ -40,7 +40,7 @@ function ClientForm({ client, onCancel, onSaved }: ClientFormProps) {
 			phone: client?.phone ?? '',
 			email: client?.email ?? '',
 			address: client?.address ?? '',
-			personType: client?.personType === 'company' ? 'company' : 'individual',
+			personType: client?.personType ?? PersonType.INDIVIDUAL,
 		},
 	})
 

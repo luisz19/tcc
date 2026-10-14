@@ -1,4 +1,5 @@
-import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import { IsEnum, IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import { PersonType } from '../model/clients.model';
 
 export class CreateClientDto {
   userId: string;
@@ -20,6 +21,9 @@ export class CreateClientDto {
   address?: string;
 
   @IsOptional()
-  @IsString()
-  personType?: string;
+  @IsString({
+    each: true,
+  })
+  @IsEnum(PersonType)
+  personType?: PersonType;
 }

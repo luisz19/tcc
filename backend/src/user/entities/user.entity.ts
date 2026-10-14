@@ -12,6 +12,7 @@ import {
 } from 'typeorm';
 
 import { Entity } from 'typeorm';
+import { Financial } from 'src/financial/entities/financial.entity';
 
 @Entity()
 @Exclude()
@@ -28,6 +29,9 @@ export class User {
 
   @OneToMany('Package', 'user')
   packages: Package[];
+
+  @OneToMany('Financial', 'user')
+  financial: Financial[];
 
   @Column()
   @Expose()

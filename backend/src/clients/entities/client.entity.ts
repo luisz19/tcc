@@ -9,6 +9,7 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
+import { PersonType } from '../model/clients.model';
 
 @Entity()
 export class Client {
@@ -54,12 +55,13 @@ export class Client {
   address: string;
 
   @Column({
-    type: 'varchar',
-    length: 20,
+    type: 'enum',
+    enum: PersonType,
+    default: PersonType.INDIVIDUAL,
     nullable: true,
     name: 'person_type',
   })
-  personType: string; // mudar para enum posteriormente
+  personType: PersonType;
 
   @CreateDateColumn()
   createdAt: Date;
