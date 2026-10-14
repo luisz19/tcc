@@ -23,8 +23,13 @@ function Home() {
 					<Link to="/projects" className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30">
 						<Card className="border-0 bg-surface-container-lowest shadow-level-1 transition-shadow hover:shadow-level-2">
 							<CardContent className="flex items-center gap-4 p-5">
-								<div className="grid size-11 place-items-center rounded-lg bg-primary-fixed text-on-primary-fixed"><BriefcaseBusiness className="size-5" aria-hidden="true" /></div>
-								<div className="min-w-0 flex-1"><h3 className="font-semibold">Projetos</h3><p className="mt-1 text-sm text-on-surface-variant">Veja e organize seus trabalhos.</p></div>
+								<div className="grid size-11 place-items-center rounded-lg bg-primary-fixed text-on-primary-fixed">
+									<BriefcaseBusiness className="size-5" aria-hidden="true" />
+								</div>
+								<div className="min-w-0 flex-1">
+									<h3 className="font-semibold">Projetos</h3>
+									<p className="mt-1 text-sm text-on-surface-variant">Veja e organize seus trabalhos.</p>
+								</div>
 								<ArrowRight className="size-5 text-outline" aria-hidden="true" />
 							</CardContent>
 						</Card>
@@ -32,8 +37,13 @@ function Home() {
 					<Link to="/clients" className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30">
 						<Card className="border-0 bg-surface-container-lowest shadow-level-1 transition-shadow hover:shadow-level-2">
 							<CardContent className="flex items-center gap-4 p-5">
-								<div className="grid size-11 place-items-center rounded-lg bg-primary-fixed text-on-primary-fixed"><UsersRound className="size-5" aria-hidden="true" /></div>
-								<div className="min-w-0 flex-1"><h3 className="font-semibold">Clientes</h3><p className="mt-1 text-sm text-on-surface-variant">Acesse sua rede de contatos.</p></div>
+								<div className="grid size-11 place-items-center rounded-lg bg-primary-fixed text-on-primary-fixed">
+									<UsersRound className="size-5" aria-hidden="true" />
+								</div>
+								<div className="min-w-0 flex-1">
+									<h3 className="font-semibold">Clientes</h3>
+									<p className="mt-1 text-sm text-on-surface-variant">Acesse sua rede de contatos.</p>
+								</div>
 								<ArrowRight className="size-5 text-outline" aria-hidden="true" />
 							</CardContent>
 						</Card>
