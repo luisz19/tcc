@@ -45,7 +45,8 @@ describe('Projects (e2e)', () => {
         name: clientName,
         phone: '11987654321',
         email: `${clientName.toLowerCase().replaceAll(' ', '.')}@example.com`,
-        personType: 'INDIVIDUAL',
+        address: '123 Test Street',
+        personType: 'individual',
       })
       .expect(201);
 

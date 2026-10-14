@@ -7,6 +7,7 @@ import Packages from './pages/Packages'
 import Home from './pages/Home'
 import Financial from './pages/Financial'
 import ClientForm from './pages/clients/ClientForm'
+import ClientDetails from './pages/clients/ClientDetails'
 import ProjectForm from './pages/projects/ProjectForm'
 import PackageForm from './pages/packages/PackageForm'
 import AuthenticatedLayout from './components/common/AuthenticatedLayout'
@@ -73,8 +74,9 @@ function App() {
         <Route path="/projects/packages" element={<Packages onCreatePackage={() => navigate('/projects/packages/new')} onEditPackage={(packageItem) => navigate(`/projects/packages/${packageItem.id}/edit`, { state: { packageItem } })} />} />
         <Route path="/projects/packages/new" element={<PackageForm onCancel={() => navigate('/projects/packages')} onSaved={() => navigate('/projects/packages')} />} />
         <Route path="/projects/packages/:id/edit" element={<PackageEditRoute packageItem={selectedPackage} />} />
-        <Route path="/clients" element={<Clients onCreateClient={() => navigate('/clients/new')} onEditClient={(client) => navigate(`/clients/${client.id}/edit`, { state: { client } })} />} />
+        <Route path="/clients" element={<Clients onCreateClient={() => navigate('/clients/new')} onViewClient={(client) => navigate(`/clients/${client.id}`, { state: { client } })} />} />
         <Route path="/clients/new" element={<ClientForm onCancel={() => navigate('/clients')} onSaved={() => navigate('/clients')} />} />
+        <Route path="/clients/:id" element={<ClientDetails />} />
         <Route path="/clients/:id/edit" element={<ClientEditRoute client={selectedClient} />} />
         <Route path="/finance" element={<Financial />} />
         <Route path="*" element={<Navigate to="/home" replace />} />

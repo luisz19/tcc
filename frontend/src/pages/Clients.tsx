@@ -12,7 +12,7 @@ import '../App.css'
 
 interface ClientsProps {
 	onCreateClient: () => void
-	onEditClient: (client: Client) => void
+	onViewClient: (client: Client) => void
 }
 
 function getInitials(name: string) {
@@ -28,7 +28,7 @@ function formatPhone(phone: string) {
 	return phone || 'Telefone não informado'
 }
 
-function Clients({ onCreateClient, onEditClient }: ClientsProps) {
+function Clients({ onCreateClient, onViewClient }: ClientsProps) {
 	const { logout } = useAuth()
 	const [clients, setClients] = useState<Client[]>([])
 	const [search, setSearch] = useState('')
@@ -126,11 +126,11 @@ function Clients({ onCreateClient, onEditClient }: ClientsProps) {
 							<Card
 								className="cursor-pointer border-0 bg-surface-container-lowest shadow-level-1 transition-shadow hover:shadow-level-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
 								key={client.id}
-								onClick={() => onEditClient(client)}
+								onClick={() => onViewClient(client)}
 								onKeyDown={(event) => {
 									if (event.key === 'Enter' || event.key === ' ') {
 										event.preventDefault()
-										onEditClient(client)
+										onViewClient(client)
 									}
 								}}
 								tabIndex={0}

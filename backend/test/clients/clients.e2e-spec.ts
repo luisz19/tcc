@@ -42,7 +42,7 @@ describe('Clients (e2e)', () => {
       phone: '11987654321',
       email: 'client@example.com',
       address: '123 Test Street',
-      personType: 'INDIVIDUAL',
+      personType: 'individual',
       ...overrides,
     };
 
@@ -68,7 +68,7 @@ describe('Clients (e2e)', () => {
     const { id, payload } = await createClient(token, {
       name: 'Empresa Teste',
       email: 'empresa@example.com',
-      personType: 'BUSINESS',
+      personType: 'company',
     });
 
     const response = await request(testSetup.app.getHttpServer())

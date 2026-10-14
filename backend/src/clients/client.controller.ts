@@ -67,6 +67,6 @@ export class ClientController {
     @Param() params: findOneParams,
     @CurrentUserId() userId: string,
   ): Promise<void> {
-    return this.clientService.deleteClient(params.id, userId);
+    await this.clientService.deleteClient(params.id, userId);
   }
 }
