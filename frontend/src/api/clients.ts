@@ -1,3 +1,4 @@
+import type { ClientProjectSummary } from '@/types/projects';
 import api from './api';
 import type { Client } from '@/types/clients';
 
@@ -16,6 +17,11 @@ export async function getClients(): Promise<Client[]> {
 
 export async function getClient(id: string): Promise<Client> {
 	const { data } = await api.get<Client>(`/clients/${id}`);
+	return data;
+}
+
+export async function getProjectsByClientId(id: string): Promise<ClientProjectSummary[]> {
+	const { data } = await api.get<ClientProjectSummary[]>(`/clients/${id}/projects`);
 	return data;
 }
 

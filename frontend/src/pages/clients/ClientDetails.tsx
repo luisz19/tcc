@@ -3,6 +3,7 @@ import { isAxiosError } from "axios";
 import {
   ArrowLeft,
   Building2,
+  CalendarDays,
   Edit3,
   LoaderCircle,
   Mail,
@@ -11,7 +12,7 @@ import {
   Trash2,
 } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
-import { deleteClient, getClient } from "@/api/clients";
+import { deleteClient, getClient, getProjectsByClientId } from "@/api/clients";
 import type { Client } from "@/types/clients";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -26,6 +27,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import "../../App.css";
+import type { ClientProjectSummary } from "@/types/projects";
 
 function getInitials(name: string) {
   return name
@@ -44,6 +46,9 @@ function ClientDetails() {
   const [isDeleting, setIsDeleting] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const [projectsByClient, setProjectsByClient] = useState<
+    ClientProjectSummary[]
+  >([]);
 
   useEffect(() => {
     if (!id) {
@@ -51,10 +56,11 @@ function ClientDetails() {
     }
 
     let isMounted = true;
-    void getClient(id)
-      .then((data) => {
+    void Promise.all([getClient(id), getProjectsByClientId(id)])
+      .then(([clientData, projectData]) => {
         if (isMounted) {
-          setClient(data);
+          setClient(clientData);
+          setProjectsByClient(projectData);
         }
       })
       .catch((error: unknown) => {
@@ -224,6 +230,62 @@ function ClientDetails() {
                 </div>
               </CardContent>
             </Card>
+            <section className="mt-6" aria-labelledby="client-projects-title">
+              <div className="mb-3 flex items-end justify-between gap-3">
+                <h2
+                  id="client-projects-title"
+                  className="text-base font-semibold"
+                >
+                  Projetos do cliente
+                </h2>
+                <span className="text-sm text-on-surface-variant">
+                  {projectsByClient.length}
+                </span>
+              </div>
+              {projectsByClient.length === 0 ? (
+                <div className="rounded-xl border border-dashed border-outline-variant px-5 py-8 text-center text-sm text-on-surface-variant">
+                  Este cliente ainda não possui projetos.
+                </div>
+              ) : (
+                <div className="grid gap-3">
+                  {projectsByClient.map((project) => (
+                    <Card
+                      className="cursor-pointer border-0 bg-surface-container-lowest shadow-level-1 transition-shadow hover:shadow-level-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
+                      key={project.id}
+                      onClick={() => navigate(`/projects/${project.id}`)}
+                      onKeyDown={(event) => {
+                        if (event.key === "Enter" || event.key === " ") {
+                          event.preventDefault();
+                          navigate(`/projects/${project.id}`);
+                        }
+                      }}
+                      role="link"
+                      tabIndex={0}
+                      aria-label={`Visualizar projeto ${project.title}`}
+                    >
+                      <CardContent className="flex items-center gap-3 p-4">
+                        <div className="min-w-0 flex-1">
+                          <h3 className="truncate text-sm font-semibold">
+                            {project.title}
+                          </h3>
+                        </div>
+                        <span className="inline-flex shrink-0 items-center gap-1.5 text-xs text-on-surface-variant">
+                          <CalendarDays
+                            className="size-3.5"
+                            aria-hidden="true"
+                          />
+                          {project.date
+                            ? new Intl.DateTimeFormat("pt-BR").format(
+                                new Date(`${project.date}T00:00:00`)
+                              )
+                            : "Data não informada"}
+                        </span>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
+            </section>
             <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
               <Button
                 className="h-12 text-error hover:bg-error-container sm:min-w-32"

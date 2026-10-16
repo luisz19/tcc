@@ -6,9 +6,7 @@ import {
   FolderKanban,
   LoaderCircle,
   MapPin,
-  Pencil,
   Plus,
-  Trash2,
   UserRound,
 } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -17,7 +15,6 @@ import { Card, CardContent } from "@/components/ui/card";
 import { useAuth } from "@/context/AuthContext";
 import { getClients } from "@/api/clients";
 import { getProjects } from "@/api/project";
-import { deleteProject } from "@/api/project";
 import type { Client } from "@/types/clients";
 import {
   projectStatuses,
@@ -25,13 +22,12 @@ import {
   type ProjectStatus,
 } from "@/types/projects";
 import SearchInput from "@/components/common/SearchInput";
-import { Button } from "@/components/ui/button";
 import "../App.css";
 
 interface ProjectsProps {
   onOpenPackages: () => void;
   onCreateProject: () => void;
-  onEditProject: (project: Project) => void;
+  onViewProject: (project: Project) => void;
 }
 
 type StatusFilter = "all" | ProjectStatus;
@@ -83,7 +79,7 @@ function getErrorMessage(error: unknown) {
 function Projects({
   onOpenPackages,
   onCreateProject,
-  onEditProject,
+  onViewProject,
 }: ProjectsProps) {
   const { logout } = useAuth();
   const [projects, setProjects] = useState<Project[]>([]);
@@ -92,9 +88,6 @@ function Projects({
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
-  const [deletingProjectId, setDeletingProjectId] = useState<string | null>(
-    null
-  );
 
   useEffect(() => {
     let isMounted = true;
@@ -121,30 +114,6 @@ function Projects({
       isMounted = false;
     };
   }, []);
-
-  async function handleDelete(project: Project) {
-    if (!window.confirm(`Excluir o projeto "${project.title}"?`)) {
-      return;
-    }
-
-    setErrorMessage("");
-    setDeletingProjectId(project.id);
-
-    try {
-      await deleteProject(project.id);
-      setProjects((currentProjects) =>
-        currentProjects.filter(({ id }) => id !== project.id)
-      );
-    } catch (error) {
-      setErrorMessage(
-        isAxiosError(error) && error.response?.status === 404
-          ? "Esse projeto não foi encontrado."
-          : "Não foi possível excluir o projeto agora."
-      );
-    } finally {
-      setDeletingProjectId(null);
-    }
-  }
 
   const clientNames = useMemo(
     () => new Map(clients.map((client) => [client.id, client.name])),
@@ -289,8 +258,18 @@ function Projects({
           <div className="grid gap-3" aria-label="Lista de projetos">
             {filteredProjects.map((project) => (
               <Card
-                className="border-0 bg-surface-container-lowest shadow-level-1"
+                className="cursor-pointer border-0 bg-surface-container-lowest shadow-level-1 transition-shadow hover:shadow-level-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
                 key={project.id}
+                onClick={() => onViewProject(project)}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter" || event.key === " ") {
+                    event.preventDefault();
+                    onViewProject(project);
+                  }
+                }}
+                role="button"
+                tabIndex={0}
+                aria-label={`Visualizar projeto ${project.title}`}
               >
                 <CardContent className="grid gap-4 p-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
                   <div className="min-w-0">
@@ -329,39 +308,6 @@ function Projects({
                         {formatPrice(project.agreed_price)}
                       </span>
                     </div>
-                  </div>
-                  <div className="flex shrink-0 items-center justify-end gap-1 sm:self-start">
-                    <Button
-                      className="text-on-surface-variant hover:bg-surface-container"
-                      variant="ghost"
-                      size="icon"
-                      type="button"
-                      onClick={() => onEditProject(project)}
-                      disabled={deletingProjectId === project.id}
-                      aria-label={`Editar projeto ${project.title}`}
-                      title="Editar projeto"
-                    >
-                      <Pencil aria-hidden="true" />
-                    </Button>
-                    <Button
-                      className="text-error hover:bg-error-container"
-                      variant="ghost"
-                      size="icon"
-                      type="button"
-                      onClick={() => void handleDelete(project)}
-                      disabled={deletingProjectId === project.id}
-                      aria-label={`Excluir projeto ${project.title}`}
-                      title="Excluir projeto"
-                    >
-                      {deletingProjectId === project.id ? (
-                        <LoaderCircle
-                          className="animate-login-spin"
-                          aria-hidden="true"
-                        />
-                      ) : (
-                        <Trash2 aria-hidden="true" />
-                      )}
-                    </Button>
                   </div>
                   {project.notes && (
                     <p className="border-t border-surface-container pt-3 text-sm leading-5 text-on-surface-variant sm:col-span-2">

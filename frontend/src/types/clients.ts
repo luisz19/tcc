@@ -9,6 +9,8 @@ export interface Client {
 	updatedAt: string;
 }
 
+	
+
 export const PersonType = {
 	INDIVIDUAL: 'individual',
 	COMPANY: 'company',

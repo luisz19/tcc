@@ -1,9 +1,10 @@
 import api from "./api";
-import type { Project } from "@/types/projects";
+import type { Project, ProjectStatus } from "@/types/projects";
 
 export interface ProjectPayload {
   clientId: string;
   packageId?: string | null;
+  status?: ProjectStatus;
   title: string;
   local?: string;
   date?: string;
@@ -31,4 +32,9 @@ export async function updateProject(
 
 export async function deleteProject(id: string): Promise<void> {
   await api.delete(`/projects/${id}`);
+}
+
+export async function getProject(id: string): Promise<Project> {
+  const { data } = await api.get<Project>(`/projects/${id}`);
+  return data;
 }

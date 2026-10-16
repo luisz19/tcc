@@ -9,6 +9,7 @@ import Financial from './pages/Financial'
 import ClientForm from './pages/clients/ClientForm'
 import ClientDetails from './pages/clients/ClientDetails'
 import ProjectForm from './pages/projects/ProjectForm'
+import ProjectDetails from './pages/projects/ProjectDetails'
 import PackageForm from './pages/packages/PackageForm'
 import AuthenticatedLayout from './components/common/AuthenticatedLayout'
 import type { Client } from './types/clients'
@@ -69,8 +70,9 @@ function App() {
         <Route path="/" element={<Navigate to="/home" replace />} />
         <Route path="/home" element={<Home />} />
 
-        <Route path="/projects" element={<Projects onOpenPackages={() => navigate('/projects/packages')} onCreateProject={() => navigate('/projects/new')} onEditProject={(project) => navigate(`/projects/${project.id}/edit`, { state: { project } })} />} />
+        <Route path="/projects" element={<Projects onOpenPackages={() => navigate('/projects/packages')} onCreateProject={() => navigate('/projects/new')} onViewProject={(project) => navigate(`/projects/${project.id}`, { state: { project } })} />} />
         <Route path="/projects/new" element={<ProjectForm onCancel={() => navigate('/projects')} onSaved={() => navigate('/projects')} />} />
+        <Route path="/projects/:id" element={<ProjectDetails />} />
         <Route path="/projects/:id/edit" element={<ProjectEditRoute project={selectedProject} />} />
         <Route path="/projects/packages" element={<Packages onCreatePackage={() => navigate('/projects/packages/new')} onEditPackage={(packageItem) => navigate(`/projects/packages/${packageItem.id}/edit`, { state: { packageItem } })} />} />
         <Route path="/projects/packages/new" element={<PackageForm onCancel={() => navigate('/projects/packages')} onSaved={() => navigate('/projects/packages')} />} />
