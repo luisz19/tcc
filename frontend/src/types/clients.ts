@@ -9,7 +9,11 @@ export interface Client {
 	updatedAt: string;
 }
 
-export enum PersonType {
-	INDIVIDUAL = 'individual',
-	COMPANY = 'company',
-}
+	
+
+export const PersonType = {
+	INDIVIDUAL: 'individual',
+	COMPANY: 'company',
+} as const
+
+export type PersonType = (typeof PersonType)[keyof typeof PersonType]

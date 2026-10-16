@@ -8,12 +8,15 @@ import { Client } from './entities/client.entity';
 import { Repository } from 'typeorm';
 import { UpdateClientDto } from './dto/update-client';
 import { CreateClientDto } from './dto/create-client.dto';
+import { Project } from 'src/project/entities/project.entity';
 
 @Injectable()
 export class ClientService {
   constructor(
     @InjectRepository(Client)
     private readonly clientsRepository: Repository<Client>,
+    @InjectRepository(Project)
+    private readonly projectsRepository: Repository<Project>,
   ) {}
 
   async findAll(
@@ -48,6 +51,23 @@ export class ClientService {
   async findOne(id: string, userId: string): Promise<Client> {
     const clients = await this.findOneOrFail(id, userId);
     return clients;
+  }
+
+  async findProjectsByClientId(
+    clientId: string,
+    userId: string,
+  ): Promise<Partial<Project>[]> {
+    return this.projectsRepository.find({
+      where: {
+        clientId,
+        client: { userId },
+      },
+      select: {
+        id: true,
+        title: true,
+        date: true,
+      },
+    });
   }
 
   async createClient(createClientDto: CreateClientDto): Promise<Client> {

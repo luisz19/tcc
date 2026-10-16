@@ -4,7 +4,7 @@
 
 @accessToken = {{login.response.body.$.accessToken}}
 
-@clientId = {{createClient.response.body.$.id}}
+@clientId = a6f1bfb1-3401-4199-bdf1-e9201116ea52
 
 ### Login
 # @name login
@@ -23,7 +23,7 @@ Content-Type: {{contentType}}
 Authorization: Bearer {{accessToken}}
 
 {
-    "name": "Testee",
+    "name": "Teste 23",
     "email": "testee@example.com",
     "personType": "individual",
     "phone": "1234567890",
@@ -36,6 +36,10 @@ Authorization: Bearer {{accessToken}}
 
 ### Get client by id
 GET {{baseUrl}}/clients/{{clientId}}
+Authorization: Bearer {{accessToken}}
+
+### Get projects by client id
+GET {{baseUrl}}/clients/{{clientId}}/projects
 Authorization: Bearer {{accessToken}}
 
 ### Update Client by id

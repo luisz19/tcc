@@ -4,9 +4,10 @@ import { ClientService } from './client.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Client } from './entities/client.entity';
 import { AuthModule } from 'src/auth/auth.module';
+import { Project } from 'src/project/entities/project.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Client]), AuthModule],
+  imports: [TypeOrmModule.forFeature([Client, Project]), AuthModule],
   controllers: [ClientController],
   providers: [ClientService],
 })

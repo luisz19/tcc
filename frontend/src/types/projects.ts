@@ -22,3 +22,5 @@ export interface Project {
   createdAt: string;
   updatedAt: string;
 }
+
+export type ClientProjectSummary = Pick<Project, "id" | "title" | "date">;

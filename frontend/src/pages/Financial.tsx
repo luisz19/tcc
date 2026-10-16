@@ -10,7 +10,9 @@ function Financial() {
 				</div>
 			</header>
 			<section className="mx-auto flex min-h-[calc(100vh-4rem)] w-full max-w-2xl flex-col items-center justify-center px-5 pb-24 text-center sm:px-8">
-				<div className="mb-4 grid size-12 place-items-center rounded-xl bg-primary-fixed text-on-primary-fixed"><WalletCards className="size-6" aria-hidden="true" /></div>
+				<div className="mb-4 grid size-12 place-items-center rounded-xl bg-primary-fixed text-on-primary-fixed">
+					<WalletCards className="size-6" aria-hidden="true" />
+				</div>
 				<h2 className="text-xl font-semibold">Financeiro</h2>
 				<p className="mt-2 max-w-sm text-sm leading-6 text-on-surface-variant">Acompanhe seus recebimentos e despesas em um só lugar.</p>
 			</section>
