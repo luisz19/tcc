@@ -18,6 +18,7 @@ import { CreateClientDto } from './dto/create-client.dto';
 import { UpdateClientDto } from './dto/update-client';
 import { CurrentUserId } from 'src/user/decorators/current-user-id.decorator';
 import { AuthGuard } from 'src/auth/guards/auth.guard';
+import { Project } from 'src/project/entities/project.entity';
 
 @Controller('clients')
 @UseGuards(AuthGuard)
@@ -39,6 +40,14 @@ export class ClientController {
     @CurrentUserId() userId: string,
   ): Promise<Client> {
     return this.clientService.findOneOrFail(params.id, userId);
+  }
+
+  @Get('/:id/projects')
+  public async findProjectsByClientId(
+    @Param() params: findOneParams,
+    @CurrentUserId() userId: string,
+  ): Promise<Partial<Project>[]> {
+    return this.clientService.findProjectsByClientId(params.id, userId);
   }
 
   @Post()
