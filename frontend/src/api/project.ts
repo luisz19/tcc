@@ -7,7 +7,8 @@ export interface ProjectPayload {
   status?: ProjectStatus;
   title: string;
   local?: string;
-  date?: string;
+  startAt: string;
+  endAt: string;
   notes?: string;
   agreed_price?: number;
 }

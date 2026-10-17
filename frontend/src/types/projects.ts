@@ -14,7 +14,8 @@ export interface Project {
   clientId: string;
   packageId?: string;
   title: string;
-  date: string | null;
+  startAt: string;
+  endAt: string;
   local: string | null;
   notes: string | null;
   status: ProjectStatus;
@@ -23,4 +24,4 @@ export interface Project {
   updatedAt: string;
 }
 
-export type ClientProjectSummary = Pick<Project, "id" | "title" | "date">;
+export type ClientProjectSummary = Pick<Project, "id" | "title" | "startAt" | "endAt">;

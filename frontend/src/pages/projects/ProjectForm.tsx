@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { isAxiosError } from 'axios'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { ArrowLeft, BriefcaseBusiness, CalendarDays, DollarSign, LoaderCircle, MapPin, UserRound } from 'lucide-react'
+import { ArrowLeft, BriefcaseBusiness, CalendarDays, Clock3, DollarSign, LoaderCircle, MapPin, UserRound } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { getClients } from '@/api/clients'
@@ -27,12 +27,33 @@ const projectSchema = z.object({
 	title: z.string().trim().min(2, 'Informe o título do projeto.'),
 	packageId: z.string().trim(),
 	local: z.string().trim(),
-	date: z.string(),
+	startDate: z.string().min(1, 'Informe o início do projeto.'),
+	startTime: z.string().min(1, 'Informe o horário de início.'),
+	endDate: z.string().min(1, 'Informe o fim do projeto.'),
+	endTime: z.string().min(1, 'Informe o horário de fim.'),
 	notes: z.string().trim(),
 	agreed_price: z.string().refine((value) => !value || Number(value) >= 0, 'Informe um valor válido.'),
 })
 
 type ProjectFormData = z.infer<typeof projectSchema>
+
+function getLocalDateTimeParts(value?: string) {
+	if (!value) {
+		return { date: '', time: '' }
+	}
+
+	const date = new Date(value)
+	const pad = (part: number) => String(part).padStart(2, '0')
+
+	return {
+		date: `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`,
+		time: `${pad(date.getHours())}:${pad(date.getMinutes())}`,
+	}
+}
+
+function toIsoDateTime(date: string, time: string) {
+	return new Date(`${date}T${time}`).toISOString()
+}
 
 function ProjectForm({ project, onCancel, onSaved }: ProjectFormProps) {
 	const isEditing = Boolean(project)
@@ -40,6 +61,8 @@ function ProjectForm({ project, onCancel, onSaved }: ProjectFormProps) {
 	const [packages, setPackages] = useState<Package[]>([])
 	const [isLoadingOptions, setIsLoadingOptions] = useState(true)
 	const [errorMessage, setErrorMessage] = useState('')
+	const startParts = getLocalDateTimeParts(project?.startAt)
+	const endParts = getLocalDateTimeParts(project?.endAt)
 	const { register, setValue, handleSubmit, formState: { errors, isSubmitting } } = useForm<ProjectFormData>({
 		resolver: zodResolver(projectSchema),
 		defaultValues: {
@@ -47,7 +70,10 @@ function ProjectForm({ project, onCancel, onSaved }: ProjectFormProps) {
 			title: project?.title ?? '',
 			packageId: project?.packageId ?? '',
 			local: project?.local ?? '',
-			date: project?.date ?? '',
+			startDate: startParts.date,
+			startTime: startParts.time,
+			endDate: endParts.date,
+			endTime: endParts.time,
 			notes: project?.notes ?? '',
 			agreed_price: project?.agreed_price === null ? '' : String(project?.agreed_price ?? ''),
 		},
@@ -92,7 +118,8 @@ function ProjectForm({ project, onCancel, onSaved }: ProjectFormProps) {
 			packageId: data.packageId || undefined,
 			title: data.title,
 			local: data.local || undefined,
-			date: data.date || undefined,
+			startAt: toIsoDateTime(data.startDate, data.startTime),
+			endAt: toIsoDateTime(data.endDate, data.endTime),
 			notes: data.notes || undefined,
 			agreed_price: data.agreed_price ? Number(data.agreed_price) : undefined,
 		}
@@ -105,8 +132,10 @@ function ProjectForm({ project, onCancel, onSaved }: ProjectFormProps) {
 			}
 			onSaved()
 		} catch (error) {
-			setErrorMessage(isAxiosError(error) && error.response?.status === 409
-				? 'Já existe um projeto com esse título.'
+			setErrorMessage(isAxiosError(error) && error.response?.data?.code === 'PROJECT_SCHEDULE_CONFLICT'
+				? 'O período escolhido se sobrepõe a outro projeto. Escolha outro horário.'
+				: isAxiosError(error) && error.response?.status === 409
+					? 'Já existe um projeto com esse título.'
 				: `Não foi possível ${isEditing ? 'atualizar' : 'cadastrar'} o projeto agora.`)
 		}
 	}
@@ -135,7 +164,7 @@ function ProjectForm({ project, onCancel, onSaved }: ProjectFormProps) {
 					<div className="grid gap-2">
 						<Label htmlFor="project-client">Cliente <span className="text-error">*</span></Label>
 						<div className="relative">
-							<UserRound className="pointer-events-none absolute left-3 top-1/2 z-10 size-[17px] -translate-y-1/2 text-outline" aria-hidden="true" />
+							<UserRound className="pointer-events-none absolute left-3 top-1/2 z-10 size-4.25 -translate-y-1/2 text-outline" aria-hidden="true" />
 							<select className="h-12 w-full appearance-none rounded-md border border-outline-variant bg-surface-container-lowest pl-10 pr-4 text-sm text-on-surface outline-none focus:border-primary focus:ring-3 focus:ring-primary/15" id="project-client" disabled={isLoadingOptions} aria-invalid={Boolean(errors.clientId)} {...register('clientId')}>
 								<option value="">{isLoadingOptions ? 'Carregando clientes...' : 'Selecione um cliente'}</option>
 								{clients.map((client) => <option value={client.id} key={client.id}>{client.name}</option>)}
@@ -147,7 +176,7 @@ function ProjectForm({ project, onCancel, onSaved }: ProjectFormProps) {
 					<div className="grid gap-2">
 						<Label htmlFor="project-package">Pacote</Label>
 						<div className="relative">
-							<BriefcaseBusiness className="pointer-events-none absolute left-3 top-1/2 z-10 size-[17px] -translate-y-1/2 text-outline" aria-hidden="true" />
+							<BriefcaseBusiness className="pointer-events-none absolute left-3 top-1/2 z-10 size-4.25 -translate-y-1/2 text-outline" aria-hidden="true" />
 							<select className="h-12 w-full appearance-none rounded-md border border-outline-variant bg-surface-container-lowest pl-10 pr-4 text-sm text-on-surface outline-none focus:border-primary focus:ring-3 focus:ring-primary/15" id="project-package" disabled={isLoadingOptions} aria-invalid={Boolean(errors.packageId)} {...register('packageId')}>
 								<option value="">{isLoadingOptions ? 'Carregando pacotes...' : 'Nenhum pacote selecionado'}</option>
 								{packages.map((packageItem) => <option value={packageItem.id} key={packageItem.id}>{packageItem.name}</option>)}
@@ -162,18 +191,35 @@ function ProjectForm({ project, onCancel, onSaved }: ProjectFormProps) {
 						{errors.title && <p className="text-xs text-error">{errors.title.message}</p>}
 					</div>
 
-					<div className="grid gap-2 sm:grid-cols-2 sm:gap-4">
+					<div className="grid gap-4 sm:grid-cols-2">
 						<div className="grid gap-2">
-							<Label htmlFor="project-date">Data</Label>
+							<Label htmlFor="project-start-date">Início</Label>
 							<div className="relative">
-								<CalendarDays className="pointer-events-none absolute left-3 top-1/2 z-10 size-[17px] -translate-y-1/2 text-outline" aria-hidden="true" />
-								<Input className="pl-10" id="project-date" type="date" {...register('date')} />
+								<CalendarDays className="pointer-events-none absolute left-3 top-1/2 z-10 size-4.25 -translate-y-1/2 text-outline" aria-hidden="true" />
+								<Input className="pl-10" id="project-start-date" type="date" aria-invalid={Boolean(errors.startDate)} {...register('startDate')} />
 							</div>
+							<div className="relative">
+								<Clock3 className="pointer-events-none absolute left-3 top-1/2 z-10 size-4.25 -translate-y-1/2 text-outline" aria-hidden="true" />
+								<Input className="pl-10" id="project-start-time" type="time" aria-invalid={Boolean(errors.startTime)} {...register('startTime')} />
+							</div>
+							{(errors.startDate || errors.startTime) && <p className="text-xs text-error">{errors.startDate?.message ?? errors.startTime?.message}</p>}
 						</div>
 						<div className="grid gap-2">
+							<Label htmlFor="project-end-date">Fim</Label>
+							<div className="relative">
+								<CalendarDays className="pointer-events-none absolute left-3 top-1/2 z-10 size-4.25 -translate-y-1/2 text-outline" aria-hidden="true" />
+								<Input className="pl-10" id="project-end-date" type="date" aria-invalid={Boolean(errors.endDate)} {...register('endDate')} />
+							</div>
+							<div className="relative">
+								<Clock3 className="pointer-events-none absolute left-3 top-1/2 z-10 size-4.25 -translate-y-1/2 text-outline" aria-hidden="true" />
+								<Input className="pl-10" id="project-end-time" type="time" aria-invalid={Boolean(errors.endTime)} {...register('endTime')} />
+							</div>
+							{(errors.endDate || errors.endTime) && <p className="text-xs text-error">{errors.endDate?.message ?? errors.endTime?.message}</p>}
+						</div>
+						<div className="grid gap-2 sm:col-span-2">
 							<Label htmlFor="project-price">Valor combinado</Label>
 							<div className="relative">
-								<DollarSign className="pointer-events-none absolute left-3 top-1/2 z-10 size-[17px] -translate-y-1/2 text-outline" aria-hidden="true" />
+								<DollarSign className="pointer-events-none absolute left-3 top-1/2 z-10 size-4.25 -translate-y-1/2 text-outline" aria-hidden="true" />
 								<Input className="pl-10" id="project-price" type="number" min="0" step="0.01" placeholder="0,00" aria-invalid={Boolean(errors.agreed_price)} {...register('agreed_price')} />
 							</div>
 							{errors.agreed_price && <p className="text-xs text-error">{errors.agreed_price.message}</p>}
@@ -183,7 +229,7 @@ function ProjectForm({ project, onCancel, onSaved }: ProjectFormProps) {
 					<div className="grid gap-2">
 						<Label htmlFor="project-local">Local</Label>
 						<div className="relative">
-							<MapPin className="pointer-events-none absolute left-3 top-1/2 z-10 size-[17px] -translate-y-1/2 text-outline" aria-hidden="true" />
+							<MapPin className="pointer-events-none absolute left-3 top-1/2 z-10 size-4.25 -translate-y-1/2 text-outline" aria-hidden="true" />
 							<Input className="pl-10" id="project-local" placeholder="Rua, cidade ou estúdio" {...register('local')} />
 						</div>
 					</div>

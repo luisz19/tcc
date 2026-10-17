@@ -274,11 +274,10 @@ function ClientDetails() {
                             className="size-3.5"
                             aria-hidden="true"
                           />
-                          {project.date
-                            ? new Intl.DateTimeFormat("pt-BR").format(
-                                new Date(`${project.date}T00:00:00`)
-                              )
-                            : "Data não informada"}
+                          {new Intl.DateTimeFormat("pt-BR", {
+                            dateStyle: "short",
+                            timeStyle: "short",
+                          }).format(new Date(project.startAt))}
                         </span>
                       </CardContent>
                     </Card>
