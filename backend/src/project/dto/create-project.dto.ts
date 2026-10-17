@@ -1,4 +1,5 @@
 import {
+  IsDateString,
   IsEnum,
   IsNotEmpty,
   IsNumber,
@@ -26,9 +27,13 @@ export class CreateProjectDto {
   @IsEnum(ProjectStatus)
   status?: ProjectStatus;
 
-  @IsOptional()
-  @IsString()
-  date?: string;
+  @IsNotEmpty()
+  @IsDateString()
+  startAt: string;
+
+  @IsNotEmpty()
+  @IsDateString()
+  endAt: string;
 
   @IsOptional()
   @IsString()
@@ -41,4 +46,5 @@ export class CreateProjectDto {
   @IsOptional()
   @IsString()
   packageId?: string;
+
 }

@@ -65,7 +65,8 @@ export class ClientService {
       select: {
         id: true,
         title: true,
-        date: true,
+        startAt: true,
+        endAt: true,
       },
     });
   }

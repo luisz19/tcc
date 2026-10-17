@@ -79,7 +79,8 @@ describe('Projects (e2e)', () => {
       packageId,
       title: 'New Project',
       local: 'New Location',
-      date: '2023-01-01',
+      startAt: '2023-01-01T10:00:00.000Z',
+      endAt: '2023-01-01T12:00:00.000Z',
       notes: 'New Notes',
       agreed_price: 100.0,
       ...overrides,
@@ -115,10 +116,82 @@ describe('Projects (e2e)', () => {
       .expect(400);
   });
 
+  it('rejeita intervalo em que o início ocorre depois do fim', async () => {
+    const token = await authenticate();
+
+    await request(testSetup.app.getHttpServer())
+      .post('/projects')
+      .set('Authorization', `Bearer ${token}`)
+      .send({
+        clientId: await createClient(token),
+        title: 'Invalid Interval',
+        startAt: '2023-01-01T12:00:00.000Z',
+        endAt: '2023-01-01T10:00:00.000Z',
+      })
+      .expect(400);
+  });
+
+  it('retorna conflito quando os horários dos projetos se sobrepõem', async () => {
+    const token = await authenticate();
+    await createProject(token);
+
+    const response = await request(testSetup.app.getHttpServer())
+      .post('/projects')
+      .set('Authorization', `Bearer ${token}`)
+      .send({
+        clientId: await createClient(token),
+        title: 'Overlapping Project',
+        startAt: '2023-01-01T11:00:00.000Z',
+        endAt: '2023-01-01T13:00:00.000Z',
+      })
+      .expect(409);
+
+    expect(response.body).toMatchObject({
+      code: 'PROJECT_SCHEDULE_CONFLICT',
+      conflict: { title: 'New Project' },
+    });
+  });
+
+  it('permite projetos em horários consecutivos', async () => {
+    const token = await authenticate();
+    await createProject(token);
+
+    await request(testSetup.app.getHttpServer())
+      .post('/projects')
+      .set('Authorization', `Bearer ${token}`)
+      .send({
+        clientId: await createClient(token),
+        title: 'Next Project',
+        startAt: '2023-01-01T12:00:00.000Z',
+        endAt: '2023-01-01T14:00:00.000Z',
+      })
+      .expect(201);
+  });
+
+  it('rejeita conflito mesmo quando o payload tenta ignorá-lo', async () => {
+    const token = await authenticate();
+    await createProject(token);
+
+    await request(testSetup.app.getHttpServer())
+      .post('/projects')
+      .set('Authorization', `Bearer ${token}`)
+      .send({
+        clientId: await createClient(token),
+        title: 'Forced Conflict',
+        startAt: '2023-01-01T11:00:00.000Z',
+        endAt: '2023-01-01T13:00:00.000Z',
+      })
+      .expect(409);
+  });
+
   it('lista os projects do usuário autenticado', async () => {
     const token = await authenticate();
     const first = await createProject(token, { title: 'First Project' });
-    const second = await createProject(token, { title: 'Second Project' });
+    const second = await createProject(token, {
+      title: 'Second Project',
+      startAt: '2023-01-01T12:00:00.000Z',
+      endAt: '2023-01-01T14:00:00.000Z',
+    });
 
     const response = await request(testSetup.app.getHttpServer())
       .get('/projects')
@@ -164,7 +237,12 @@ describe('Projects (e2e)', () => {
     await request(testSetup.app.getHttpServer())
       .patch(`/projects/${id}`)
       .set('Authorization', `Bearer ${token}`)
-      .send({ title: 'Updated Project', notes: 'Updated Notes' })
+      .send({
+        title: 'Updated Project',
+        notes: 'Updated Notes',
+        startAt: '2023-01-01T13:00:00.000Z',
+        endAt: '2023-01-01T15:00:00.000Z',
+      })
       .expect(200)
       .expect((response) => {
         expect(response.body.title).toBe('Updated Project');

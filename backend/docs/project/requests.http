@@ -28,10 +28,12 @@ Content-Type: {{contentType}}
 Authorization: Bearer {{accessToken}}
 
 {
-    "title": "Testee26",
+    "title": "Testee3342633",
     "notes": "Testee",
     "agreed_price": 100,
     "location": "Testee",
+    "startAt": "2023-01-01T15:00:00.000Z",
+    "endAt": "2023-01-01T16:00:00.000Z",
     "clientId": "{{clientId}}",
     "packageId": "{{packageId}}"
 }

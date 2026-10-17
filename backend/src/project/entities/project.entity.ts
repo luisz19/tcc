@@ -52,10 +52,16 @@ export class Project {
   title: string;
 
   @Column({
-    type: 'date',
+    type: 'timestamptz',
     nullable: true,
   })
-  date: string;
+  startAt: Date;
+
+  @Column({
+    type: 'timestamptz',
+    nullable: true,
+  })
+  endAt: Date;
 
   @Column({
     type: 'varchar',

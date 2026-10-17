@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ConflictException,
   Injectable,
   NotFoundException,
@@ -38,12 +39,36 @@ export class ProjectService {
   }
 
   async createProject(createProjectDto: CreateProjectDto): Promise<Project> {
+    this.validateProjectInterval(
+      createProjectDto.startAt,
+      createProjectDto.endAt,
+    );
+
     const existingProject = await this.projectRepository.findOne({
       where: {
         title: createProjectDto.title,
         userId: createProjectDto.userId,
       },
     });
+
+    const existingProjectInSameDateAndTime = await this.findScheduleConflict(
+      createProjectDto.userId,
+      createProjectDto.startAt,
+      createProjectDto.endAt,
+    );
+
+    if (existingProjectInSameDateAndTime) {
+      throw new ConflictException({
+        code: 'PROJECT_SCHEDULE_CONFLICT',
+        message: 'Project schedule overlaps an existing project.',
+        conflict: {
+          id: existingProjectInSameDateAndTime.id,
+          title: existingProjectInSameDateAndTime.title,
+          startAt: existingProjectInSameDateAndTime.startAt,
+          endAt: existingProjectInSameDateAndTime.endAt,
+        },
+      });
+    }
 
     if (existingProject) {
       throw new ConflictException(
@@ -62,8 +87,59 @@ export class ProjectService {
   ): Promise<Project> {
     const project = await this.findOneOrFail(id, userId);
 
+    const startAt = updateProjectDto.startAt ?? project.startAt.toISOString();
+    const endAt = updateProjectDto.endAt ?? project.endAt.toISOString();
+    this.validateProjectInterval(startAt, endAt);
+
+    const conflict = await this.findScheduleConflict(
+      userId,
+      startAt,
+      endAt,
+      id,
+    );
+
+    if (conflict) {
+      throw new ConflictException({
+        code: 'PROJECT_SCHEDULE_CONFLICT',
+        message: 'Project schedule overlaps an existing project.',
+        conflict: {
+          id: conflict.id,
+          title: conflict.title,
+          startAt: conflict.startAt,
+          endAt: conflict.endAt,
+        },
+      });
+    }
+
     Object.assign(project, updateProjectDto);
     return this.projectRepository.save(project);
+  }
+
+  private validateProjectInterval(startAt: string, endAt: string): void {
+    if (new Date(startAt).getTime() >= new Date(endAt).getTime()) {
+      throw new BadRequestException('startAt must be earlier than endAt.');
+    }
+  }
+
+  private findScheduleConflict(
+    userId: string,
+    startAt: string,
+    endAt: string,
+    excludedProjectId?: string,
+  ): Promise<Project | null> {
+    const query = this.projectRepository
+      .createQueryBuilder('project')
+      .where('project.userId = :userId', { userId })
+      .andWhere('project.startAt < :endAt', { endAt })
+      .andWhere('project.endAt > :startAt', { startAt });
+
+    if (excludedProjectId) {
+      query.andWhere('project.id != :excludedProjectId', {
+        excludedProjectId,
+      });
+    }
+
+    return query.getOne();
   }
 
   async deleteProject(id: string, userId: string): Promise<void> {

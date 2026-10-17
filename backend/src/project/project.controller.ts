@@ -53,7 +53,11 @@ export class ProjectController {
     @Body() updateProjectDto: UpdateProjectDto,
     @CurrentUserId() userId: string,
   ): Promise<Project> {
-    return this.projectService.updateProject(params.id, userId, updateProjectDto);
+    return this.projectService.updateProject(
+      params.id,
+      userId,
+      updateProjectDto,
+    );
   }
 
   @Delete('/:id')
