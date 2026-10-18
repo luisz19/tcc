@@ -8,7 +8,7 @@
 
 @clientId = a6f1bfb1-3401-4199-bdf1-e9201116ea52
 
-@packageId = dd69e9db-771d-4cfe-b0b2-456fb068ad90
+@packageId = 96b86379-7b30-4ae8-804a-1d6c71e120bf
 
 
 ### Login
@@ -28,12 +28,11 @@ Content-Type: {{contentType}}
 Authorization: Bearer {{accessToken}}
 
 {
-    "title": "Testee3342633",
+    "title": "Testee33542633",
     "notes": "Testee",
-    "agreed_price": 100,
     "location": "Testee",
-    "startAt": "2023-01-01T15:00:00.000Z",
-    "endAt": "2023-01-01T16:00:00.000Z",
+    "startAt": "2023-01-03T15:00:00.000Z",
+    "endAt": "2023-01-03T16:00:00.000Z",
     "clientId": "{{clientId}}",
     "packageId": "{{packageId}}"
 }

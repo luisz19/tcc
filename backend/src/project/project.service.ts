@@ -9,12 +9,16 @@ import { Project } from './entities/project.entity';
 import { Repository } from 'typeorm';
 import { UpdateProjectDto } from './dto/update-project';
 import { CreateProjectDto } from './dto/create-project.dto';
+import { Package } from 'src/package/entities/package.entity';
 
 @Injectable()
 export class ProjectService {
   constructor(
     @InjectRepository(Project)
     private readonly projectRepository: Repository<Project>,
+
+    @InjectRepository(Package)
+    private readonly packageRepository: Repository<Package>,
   ) {}
 
   async findAll(userId: string): Promise<Project[]> {
@@ -51,6 +55,25 @@ export class ProjectService {
       },
     });
 
+    let agreedPrice = createProjectDto.agreed_price;
+
+    if (createProjectDto.packageId) {
+      const packageProject = await this.packageRepository.findOne({
+        where: {
+          id: createProjectDto.packageId,
+          userId: createProjectDto.userId,
+        },
+      });
+
+      if (!packageProject) {
+        throw new NotFoundException('Package not found.');
+      }
+
+      if (agreedPrice === undefined) {
+        agreedPrice = Number(packageProject.base_price);
+      }
+    }
+
     const existingProjectInSameDateAndTime = await this.findScheduleConflict(
       createProjectDto.userId,
       createProjectDto.startAt,
@@ -76,8 +99,12 @@ export class ProjectService {
       );
     }
 
-    const project = this.projectRepository.create(createProjectDto);
-    return await this.projectRepository.save(project);
+    const project = this.projectRepository.create({
+      ...createProjectDto,
+      agreed_price: agreedPrice,
+    });
+
+    return this.projectRepository.save(project);
   }
 
   async updateProject(
@@ -109,6 +136,23 @@ export class ProjectService {
           endAt: conflict.endAt,
         },
       });
+    }
+
+    if (updateProjectDto.packageId) {
+      const packageProject = await this.packageRepository.findOne({
+        where: {
+          id: updateProjectDto.packageId,
+          userId,
+        },
+      });
+
+      if (!packageProject) {
+        throw new NotFoundException('Package not found.');
+      }
+
+      if (updateProjectDto.agreed_price === undefined) {
+        updateProjectDto.agreed_price = Number(packageProject.base_price);
+      }
     }
 
     Object.assign(project, updateProjectDto);

@@ -23,8 +23,8 @@ Content-Type: {{contentType}}
 Authorization: Bearer {{accessToken}}
 
 {
-    "name": "Testee",
-    "base_price": 100
+    "name": "Testee 1000",
+    "base_price": 1000
     
 }
 
