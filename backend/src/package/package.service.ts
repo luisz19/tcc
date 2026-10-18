@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ConflictException,
   Injectable,
   NotFoundException,
@@ -51,7 +52,16 @@ export class PackageService {
       );
     }
 
-    const packageProject = this.packageRepository.create(createPackageDto);
+    this.validateBasePrice(createPackageDto.base_price);
+
+    const formattedPrice =
+      Math.round(Number(createPackageDto.base_price) * 100) / 100;
+
+    const packageProject = this.packageRepository.create({
+      ...createPackageDto,
+      base_price: formattedPrice,
+    });
+
     return await this.packageRepository.save(packageProject);
   }
 
@@ -61,13 +71,55 @@ export class PackageService {
   ): Promise<Package> {
     const packageProject = await this.findOneOrFail(id);
 
+    if (updatePackageDto.base_price !== undefined) {
+      this.validateBasePrice(updatePackageDto.base_price);
+      updatePackageDto.base_price =
+        Math.round(Number(updatePackageDto.base_price) * 100) / 100;
+    }
+
+    if (
+      updatePackageDto.name &&
+      updatePackageDto.name !== packageProject.name
+    ) {
+      const existingPackage = await this.packageRepository.findOne({
+        where: {
+          name: updatePackageDto.name,
+          userId: packageProject.userId,
+        },
+      });
+
+      if (existingPackage) {
+        throw new ConflictException(
+          'Package with the same name already exists for this user.',
+        );
+      }
+    }
+
     Object.assign(packageProject, updatePackageDto);
-    return this.packageRepository.save(packageProject);
+
+    return await this.packageRepository.save(packageProject);
   }
 
   async deletePackage(id: string): Promise<void> {
     const packageProject = await this.findOneOrFail(id);
 
     await this.packageRepository.delete(packageProject.id);
+  }
+
+  private validateBasePrice(price: number): void {
+    const basePrice = Number(price);
+
+    if (isNaN(basePrice) || basePrice <= 0) {
+      throw new BadRequestException(
+        'base_price must be a positive number greater than 0.',
+      );
+    }
+
+    const decimalPlaces = (basePrice.toString().split('.')[1] || '').length;
+    if (decimalPlaces > 2) {
+      throw new BadRequestException(
+        'base_price must have up to 2 decimal places.',
+      );
+    }
   }
 }
