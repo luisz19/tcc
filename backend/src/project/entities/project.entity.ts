@@ -9,7 +9,7 @@ import {
   JoinColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { ProjectStatus } from '../model/project.model';
+import { ProjectStatus, ProjectType } from '../model/project.model';
 import { Client } from 'src/clients/entities/client.entity';
 
 @Entity()
@@ -50,6 +50,15 @@ export class Project {
     nullable: false,
   })
   title: string;
+
+  @Column({
+    type: 'enum',
+    enum: ProjectType,
+    nullable: true,
+    default: ProjectType.PHOTO_SESSION,
+    name: 'project_type',
+  })
+  projectType?: ProjectType;
 
   @Column({
     type: 'timestamptz',

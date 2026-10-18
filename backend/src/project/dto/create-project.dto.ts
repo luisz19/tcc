@@ -6,7 +6,7 @@ import {
   IsOptional,
   IsString,
 } from 'class-validator';
-import { ProjectStatus } from '../model/project.model';
+import { ProjectStatus, ProjectType } from '../model/project.model';
 
 export class CreateProjectDto {
   userId: string;
@@ -18,6 +18,13 @@ export class CreateProjectDto {
   @IsNotEmpty()
   @IsString()
   title: string;
+
+  @IsOptional()
+  @IsString({
+    each: true,
+  })
+  @IsEnum(ProjectType)
+  projectType?: ProjectType;
 
   @IsOptional()
   @IsString()

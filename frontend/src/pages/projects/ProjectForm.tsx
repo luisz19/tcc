@@ -8,7 +8,7 @@ import { getClients } from '@/api/clients'
 import { getPackages } from '@/api/package'
 import { createProject, updateProject, type ProjectPayload } from '@/api/project'
 import type { Client } from '@/types/clients'
-import type { Project } from '@/types/projects'
+import { projectTypes, type Project, type ProjectType } from '@/types/projects'
 import type { Package } from '@/types/packages'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
@@ -24,6 +24,7 @@ interface ProjectFormProps {
 
 const projectSchema = z.object({
 	clientId: z.string().min(1, 'Selecione um cliente.'),
+	projectType: z.enum(projectTypes),
 	title: z.string().trim().min(2, 'Informe o título do projeto.'),
 	packageId: z.string().trim(),
 	local: z.string().trim(),
@@ -67,6 +68,7 @@ function ProjectForm({ project, onCancel, onSaved }: ProjectFormProps) {
 		resolver: zodResolver(projectSchema),
 		defaultValues: {
 			clientId: project?.clientId ?? '',
+			projectType: project?.projectType ?? 'photo_session',
 			title: project?.title ?? '',
 			packageId: project?.packageId ?? '',
 			local: project?.local ?? '',
@@ -115,6 +117,7 @@ function ProjectForm({ project, onCancel, onSaved }: ProjectFormProps) {
 		setErrorMessage('')
 		const payload: ProjectPayload = {
 			clientId: data.clientId,
+			projectType: data.projectType as ProjectType,
 			packageId: data.packageId || undefined,
 			title: data.title,
 			local: data.local || undefined,
@@ -183,6 +186,16 @@ function ProjectForm({ project, onCancel, onSaved }: ProjectFormProps) {
 							</select>
 						</div>
 						{errors.packageId && <p className="text-xs text-error">{errors.packageId.message}</p>}
+					</div>
+
+					<div className="grid gap-2">
+						<Label htmlFor="project-type">Tipo de projeto <span className="text-error">*</span></Label>
+						<select className="h-12 w-full rounded-md border border-outline-variant bg-surface-container-lowest px-3 text-sm text-on-surface outline-none focus:border-primary focus:ring-3 focus:ring-primary/15" id="project-type" aria-invalid={Boolean(errors.projectType)} {...register('projectType')}>
+							<option value="">Selecione o tipo de projeto</option>
+							<option value="event">Evento</option>
+							<option value="photo_session">Sessão de fotos</option>
+						</select>
+						{errors.projectType && <p className="text-xs text-error">Selecione o tipo de projeto.</p>}
 					</div>
 
 					<div className="grid gap-2">

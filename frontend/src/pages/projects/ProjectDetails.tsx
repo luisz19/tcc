@@ -16,7 +16,7 @@ import { getClients } from "@/api/clients";
 import { getPackages } from "@/api/package";
 import type { Client } from "@/types/clients";
 import type { Package } from "@/types/packages";
-import { projectStatuses, type Project, type ProjectStatus } from "@/types/projects";
+import { projectStatuses, type Project, type ProjectStatus, type ProjectType } from "@/types/projects";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -45,6 +45,11 @@ const statusClasses: Record<ProjectStatus, string> = {
   in_progress: "bg-primary-fixed text-on-primary-fixed",
   completed: "bg-surface-container-high text-on-surface-variant",
   canceled: "bg-error-container text-on-error-container",
+};
+
+const projectTypeLabels: Record<ProjectType, string> = {
+  event: "Evento",
+  photo_session: "Sessão de fotos",
 };
 
 function formatSchedule(startAt: string, endAt: string) {
@@ -224,6 +229,9 @@ function ProjectDetails() {
                 </div>
                 <p className="text-sm text-on-surface-variant">
                   {client?.name ?? "Cliente não encontrado"}
+                </p>
+                <p className="text-sm text-on-surface-variant">
+                  {projectTypeLabels[project.projectType ?? "photo_session"]}
                 </p>
               </CardContent>
             </Card>

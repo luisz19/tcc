@@ -6,6 +6,10 @@ export const projectStatuses = [
   "canceled",
 ] as const;
 
+export const projectTypes = ["event", "photo_session"] as const;
+
+export type ProjectType = (typeof projectTypes)[number];
+
 export type ProjectStatus = (typeof projectStatuses)[number];
 
 export interface Project {
@@ -14,6 +18,7 @@ export interface Project {
   clientId: string;
   packageId?: string;
   title: string;
+  projectType?: ProjectType;
   startAt: string;
   endAt: string;
   local: string | null;
