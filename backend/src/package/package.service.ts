@@ -149,7 +149,7 @@ export class PackageService {
 
   private validateBasePrice(price: number): void {
     validateMoney(price, {
-      fieldName: 'base_priceeeeeeeeeee',
+      fieldName: 'base_price',
     });
   }
 }

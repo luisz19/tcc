@@ -6,7 +6,7 @@
 
 # @projectId = {{createProject.response.body.$.id}}
 
-@financialId = 80b0988d-4595-46f0-b68c-9cd3b781f20c
+@financialId = {{createFinancial.response.body.$.id}}
 
 
 ### Login
@@ -28,7 +28,7 @@ Authorization: Bearer {{accessToken}}
 {
     "type": "income",
     "description": "Income from sales",
-    "value": 6,
+    "value": 86.5,
     "status": "pending",
     "date": "2023-01-01",
     "projectId": "f1bc6e40-154c-43ba-8018-55bda3ba95f0"
@@ -48,7 +48,7 @@ Content-Type: {{contentType}}
 Authorization: Bearer {{accessToken}}
 
 {
-    "value": 2000
+    "value": -2000
 }
 
 ### Delete Financial by id

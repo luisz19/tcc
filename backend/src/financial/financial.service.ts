@@ -8,6 +8,7 @@ import { Financial } from './entities/financial.entity';
 import { Repository } from 'typeorm';
 import { UpdateFinancialDto } from './dto/update-financial';
 import { CreateFinancialDto } from './dto/create-financial.dto';
+import { validateMoney } from 'src/common/validators/money.validator';
 
 @Injectable()
 export class FinancialService {
@@ -41,6 +42,13 @@ export class FinancialService {
     createFinancialDto: CreateFinancialDto,
   ): Promise<Financial> {
     const financial = this.financialRepository.create(createFinancialDto);
+
+    this.validateAmount(financial.value);
+
+    const formatedPrice = Math.round(financial.value * 100) / 100;
+
+    financial.value = formatedPrice;
+
     return await this.financialRepository.save(financial);
   }
 
@@ -58,5 +66,11 @@ export class FinancialService {
     const financial = await this.findOneOrFail(id);
 
     await this.financialRepository.delete(financial.id);
+  }
+
+  private validateAmount(value: number): void {
+    validateMoney(value, {
+      fieldName: 'value',
+    });
   }
 }
