@@ -3,12 +3,17 @@ import {
   IsNotEmpty,
   IsNumber,
   IsOptional,
+  IsPositive,
   IsString,
 } from 'class-validator';
 import { FinancialStatus, FinancialType } from '../model/financial.model';
 
 export class CreateFinancialDto {
   userId: string;
+
+  @IsNotEmpty()
+  @IsString()
+  projectId: string;
 
   @IsNotEmpty()
   @IsString()
@@ -25,6 +30,7 @@ export class CreateFinancialDto {
 
   @IsNotEmpty()
   @IsNumber()
+  @IsPositive()
   value: number;
 
   @IsNotEmpty()

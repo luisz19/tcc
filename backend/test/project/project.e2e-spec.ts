@@ -316,4 +316,8 @@ describe('Projects (e2e)', () => {
         expect(response.body.packageId).toBe(packageId);
       });
   });
+
+  it('adicionar movimentação financeira a um projeto', async () => {
+   
+  });
 });

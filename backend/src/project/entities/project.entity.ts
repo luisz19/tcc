@@ -8,9 +8,11 @@ import {
   PrimaryGeneratedColumn,
   JoinColumn,
   UpdateDateColumn,
+  OneToMany,
 } from 'typeorm';
 import { ProjectStatus, ProjectType } from '../model/project.model';
 import { Client } from 'src/clients/entities/client.entity';
+import { Financial } from 'src/financial/entities/financial.entity';
 
 @Entity()
 export class Project {
@@ -24,6 +26,11 @@ export class Project {
     nullable: false,
   })
   user: User;
+
+  @OneToMany(() => Financial, (financial) => financial.project, {
+    nullable: true,
+  })
+  financial?: Financial[];
 
   @ManyToOne(() => Package, (pkg) => pkg.projects, {
     nullable: true,

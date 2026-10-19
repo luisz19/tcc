@@ -3,11 +3,13 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  JoinColumn,
   ManyToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 import { FinancialStatus, FinancialType } from '../model/financial.model';
+import { Project } from 'src/project/entities/project.entity';
 
 @Entity()
 export class Financial {
@@ -17,8 +19,15 @@ export class Financial {
   @Column()
   userId: string;
 
+  @Column()
+  projectId: string;
+
   @ManyToOne(() => User, (user) => user.financial, { nullable: false })
   user: User;
+
+  @ManyToOne(() => Project, (project) => project.financial, { nullable: false })
+  @JoinColumn({ name: 'projectId' })
+  project: Project;
 
   @Column({
     type: 'enum',
@@ -42,7 +51,7 @@ export class Financial {
   })
   description?: string;
 
-  @Column({ type: 'decimal', precision: 10, scale: 2 })
+  @Column({ type: 'decimal', precision: 10, scale: 2, nullable: false })
   value: number;
 
   @Column({ type: 'date' })

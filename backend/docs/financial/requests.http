@@ -28,9 +28,10 @@ Authorization: Bearer {{accessToken}}
 {
     "type": "income",
     "description": "Income from sales",
-    "value": 1000,
+    "value": 6,
     "status": "pending",
-    "date": "2023-01-01"
+    "date": "2023-01-01",
+    "projectId": "f1bc6e40-154c-43ba-8018-55bda3ba95f0"
 }
 
 ### Get all financial
