@@ -299,10 +299,12 @@ function ClientDetails() {
                             className="size-3.5"
                             aria-hidden="true"
                           />
-                          {new Intl.DateTimeFormat("pt-BR", {
-                            dateStyle: "short",
-                            timeStyle: "short",
-                          }).format(new Date(project.startAt))}
+                          {project.startAt
+                            ? new Intl.DateTimeFormat("pt-BR", {
+                                dateStyle: "short",
+                                timeStyle: "short",
+                              }).format(new Date(project.startAt))
+                            : "Período não informado"}
                         </span>
                       </CardContent>
                     </Card>

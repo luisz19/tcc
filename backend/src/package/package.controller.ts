@@ -8,6 +8,7 @@ import {
   Param,
   Patch,
   Post,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import { PackageService } from './package.service';
@@ -54,7 +55,15 @@ export class PackageController {
 
   @Delete('/:id')
   @HttpCode(HttpStatus.NO_CONTENT)
-  public async deletePackage(@Param() params: findOneParams): Promise<void> {
-    return this.packageService.deletePackage(params.id);
+  public async deletePackage(
+    @Param() params: findOneParams,
+    @CurrentUserId() userId: string,
+    @Query('confirm') confirm?: string,
+  ): Promise<void> {
+    return this.packageService.deletePackage(
+      params.id,
+      userId,
+      confirm === 'true',
+    );
   }
 }

@@ -48,7 +48,11 @@ const statusClasses: Record<ProjectStatus, string> = {
   canceled: "bg-error-container text-on-error-container",
 };
 
-function formatSchedule(startAt: string, endAt: string) {
+function formatSchedule(startAt: string | null, endAt: string | null) {
+  if (!startAt || !endAt) {
+    return "Período não informado";
+  }
+
   const formatter = new Intl.DateTimeFormat("pt-BR", {
     dateStyle: "short",
     timeStyle: "short",

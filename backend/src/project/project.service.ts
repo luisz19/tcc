@@ -74,11 +74,14 @@ export class ProjectService {
       }
     }
 
-    const existingProjectInSameDateAndTime = await this.findScheduleConflict(
-      createProjectDto.userId,
-      createProjectDto.startAt,
-      createProjectDto.endAt,
-    );
+    const existingProjectInSameDateAndTime =
+      createProjectDto.startAt && createProjectDto.endAt
+        ? await this.findScheduleConflict(
+            createProjectDto.userId,
+            createProjectDto.startAt,
+            createProjectDto.endAt,
+          )
+        : null;
 
     if (existingProjectInSameDateAndTime) {
       throw new ConflictException({
@@ -114,16 +117,14 @@ export class ProjectService {
   ): Promise<Project> {
     const project = await this.findOneOrFail(id, userId);
 
-    const startAt = updateProjectDto.startAt ?? project.startAt.toISOString();
-    const endAt = updateProjectDto.endAt ?? project.endAt.toISOString();
+    const startAt = updateProjectDto.startAt ?? project.startAt?.toISOString();
+    const endAt = updateProjectDto.endAt ?? project.endAt?.toISOString();
     this.validateProjectInterval(startAt, endAt);
 
-    const conflict = await this.findScheduleConflict(
-      userId,
-      startAt,
-      endAt,
-      id,
-    );
+    const conflict =
+      startAt && endAt
+        ? await this.findScheduleConflict(userId, startAt, endAt, id)
+        : null;
 
     if (conflict) {
       throw new ConflictException({
@@ -159,7 +160,17 @@ export class ProjectService {
     return this.projectRepository.save(project);
   }
 
-  private validateProjectInterval(startAt: string, endAt: string): void {
+  private validateProjectInterval(startAt?: string, endAt?: string): void {
+    if (!startAt && !endAt) {
+      return;
+    }
+
+    if (!startAt || !endAt) {
+      throw new BadRequestException(
+        'startAt and endAt must be provided together.',
+      );
+    }
+
     if (new Date(startAt).getTime() >= new Date(endAt).getTime()) {
       throw new BadRequestException('startAt must be earlier than endAt.');
     }

@@ -34,13 +34,13 @@ export class CreateProjectDto {
   @IsEnum(ProjectStatus)
   status?: ProjectStatus;
 
-  @IsNotEmpty()
+  @IsOptional()
   @IsDateString()
-  startAt: string;
+  startAt?: string;
 
-  @IsNotEmpty()
+  @IsOptional()
   @IsDateString()
-  endAt: string;
+  endAt?: string;
 
   @IsOptional()
   @IsString()

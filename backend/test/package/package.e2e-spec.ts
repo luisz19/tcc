@@ -108,4 +108,52 @@ describe('Package (e2e)', () => {
       .set('Authorization', `Bearer ${authToken}`)
       .expect(204);
   });
+
+  it('confirma uso e desvincula pacote sem excluir projetos', async () => {
+    const clientResponse = await request(testSetup.app.getHttpServer())
+      .post('/clients')
+      .set('Authorization', `Bearer ${authToken}`)
+      .send({
+        name: 'Package Client',
+        phone: '11987654321',
+        personType: 'individual',
+      })
+      .expect(201);
+
+    const projectResponse = await request(testSetup.app.getHttpServer())
+      .post('/projects')
+      .set('Authorization', `Bearer ${authToken}`)
+      .send({
+        clientId: clientResponse.body.id,
+        packageId,
+        title: 'Project with Package',
+        startAt: '2026-10-20T10:00:00.000Z',
+        endAt: '2026-10-20T12:00:00.000Z',
+      })
+      .expect(201);
+
+    const firstDelete = await request(testSetup.app.getHttpServer())
+      .delete(`/packages/${packageId}`)
+      .set('Authorization', `Bearer ${authToken}`)
+      .expect(409);
+
+    expect(firstDelete.body).toMatchObject({
+      code: 'PACKAGE_IN_USE',
+      projectCount: 1,
+    });
+
+    await request(testSetup.app.getHttpServer())
+      .delete(`/packages/${packageId}`)
+      .query({ confirm: 'true' })
+      .set('Authorization', `Bearer ${authToken}`)
+      .expect(204);
+
+    await request(testSetup.app.getHttpServer())
+      .get(`/projects/${projectResponse.body.id}`)
+      .set('Authorization', `Bearer ${authToken}`)
+      .expect(200)
+      .expect((response) => {
+        expect(response.body.packageId).toBeNull();
+      });
+  });
 });

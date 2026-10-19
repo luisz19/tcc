@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { isAxiosError } from 'axios'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { ArrowLeft, BriefcaseBusiness, CalendarDays, Clock3, DollarSign, LoaderCircle, MapPin, UserRound } from 'lucide-react'
+import { ArrowLeft, BriefcaseBusiness, CalendarDays, DollarSign, LoaderCircle, MapPin, UserRound } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { getClients } from '@/api/clients'
@@ -26,34 +26,29 @@ const projectSchema = z.object({
 	clientId: z.string().min(1, 'Selecione um cliente.'),
 	projectType: z.enum(projectTypes),
 	title: z.string().trim().min(2, 'Informe o título do projeto.'),
-	packageId: z.string().trim(),
-	local: z.string().trim(),
-	startDate: z.string().min(1, 'Informe o início do projeto.'),
-	startTime: z.string().min(1, 'Informe o horário de início.'),
-	endDate: z.string().min(1, 'Informe o fim do projeto.'),
-	endTime: z.string().min(1, 'Informe o horário de fim.'),
+	packageId: z.string().trim().nullable(),
+	local: z.string().trim().nullable(),
+	startAt: z.string(),
+	endAt: z.string(),
 	notes: z.string().trim(),
 	agreed_price: z.string().refine((value) => !value || Number(value) >= 0, 'Informe um valor válido.'),
 })
 
 type ProjectFormData = z.infer<typeof projectSchema>
 
-function getLocalDateTimeParts(value?: string) {
+function getLocalDateTimeInput(value?: string | null) {
 	if (!value) {
-		return { date: '', time: '' }
+		return ''
 	}
 
 	const date = new Date(value)
 	const pad = (part: number) => String(part).padStart(2, '0')
 
-	return {
-		date: `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`,
-		time: `${pad(date.getHours())}:${pad(date.getMinutes())}`,
-	}
+	return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`
 }
 
-function toIsoDateTime(date: string, time: string) {
-	return new Date(`${date}T${time}`).toISOString()
+function toIsoDateTime(value: string) {
+	return value ? new Date(value).toISOString() : undefined
 }
 
 function ProjectForm({ project, onCancel, onSaved }: ProjectFormProps) {
@@ -62,8 +57,6 @@ function ProjectForm({ project, onCancel, onSaved }: ProjectFormProps) {
 	const [packages, setPackages] = useState<Package[]>([])
 	const [isLoadingOptions, setIsLoadingOptions] = useState(true)
 	const [errorMessage, setErrorMessage] = useState('')
-	const startParts = getLocalDateTimeParts(project?.startAt)
-	const endParts = getLocalDateTimeParts(project?.endAt)
 	const { register, setValue, handleSubmit, formState: { errors, isSubmitting } } = useForm<ProjectFormData>({
 		resolver: zodResolver(projectSchema),
 		defaultValues: {
@@ -72,10 +65,8 @@ function ProjectForm({ project, onCancel, onSaved }: ProjectFormProps) {
 			title: project?.title ?? '',
 			packageId: project?.packageId ?? '',
 			local: project?.local ?? '',
-			startDate: startParts.date,
-			startTime: startParts.time,
-			endDate: endParts.date,
-			endTime: endParts.time,
+			startAt: getLocalDateTimeInput(project?.startAt),
+			endAt: getLocalDateTimeInput(project?.endAt),
 			notes: project?.notes ?? '',
 			agreed_price: project?.agreed_price === null ? '' : String(project?.agreed_price ?? ''),
 		},
@@ -115,14 +106,19 @@ function ProjectForm({ project, onCancel, onSaved }: ProjectFormProps) {
 
 	async function onSubmit(data: ProjectFormData) {
 		setErrorMessage('')
+		if (Boolean(data.startAt) !== Boolean(data.endAt)) {
+			setErrorMessage('Informe data e hora de início e fim juntas.')
+			return
+		}
+
 		const payload: ProjectPayload = {
 			clientId: data.clientId,
 			projectType: data.projectType as ProjectType,
 			packageId: data.packageId || undefined,
 			title: data.title,
 			local: data.local || undefined,
-			startAt: toIsoDateTime(data.startDate, data.startTime),
-			endAt: toIsoDateTime(data.endDate, data.endTime),
+			startAt: toIsoDateTime(data.startAt),
+			endAt: toIsoDateTime(data.endAt),
 			notes: data.notes || undefined,
 			agreed_price: data.agreed_price ? Number(data.agreed_price) : undefined,
 		}
@@ -206,28 +202,20 @@ function ProjectForm({ project, onCancel, onSaved }: ProjectFormProps) {
 
 					<div className="grid gap-4 sm:grid-cols-2">
 						<div className="grid gap-2">
-							<Label htmlFor="project-start-date">Início</Label>
+							<Label htmlFor="project-start-at">Início</Label>
 							<div className="relative">
 								<CalendarDays className="pointer-events-none absolute left-3 top-1/2 z-10 size-4.25 -translate-y-1/2 text-outline" aria-hidden="true" />
-								<Input className="pl-10" id="project-start-date" type="date" aria-invalid={Boolean(errors.startDate)} {...register('startDate')} />
+								<Input className="pl-10" id="project-start-at" type="datetime-local" aria-invalid={Boolean(errors.startAt)} {...register('startAt')} />
 							</div>
-							<div className="relative">
-								<Clock3 className="pointer-events-none absolute left-3 top-1/2 z-10 size-4.25 -translate-y-1/2 text-outline" aria-hidden="true" />
-								<Input className="pl-10" id="project-start-time" type="time" aria-invalid={Boolean(errors.startTime)} {...register('startTime')} />
-							</div>
-							{(errors.startDate || errors.startTime) && <p className="text-xs text-error">{errors.startDate?.message ?? errors.startTime?.message}</p>}
+							{errors.startAt && <p className="text-xs text-error">{errors.startAt.message}</p>}
 						</div>
 						<div className="grid gap-2">
-							<Label htmlFor="project-end-date">Fim</Label>
+							<Label htmlFor="project-end-at">Fim</Label>
 							<div className="relative">
 								<CalendarDays className="pointer-events-none absolute left-3 top-1/2 z-10 size-4.25 -translate-y-1/2 text-outline" aria-hidden="true" />
-								<Input className="pl-10" id="project-end-date" type="date" aria-invalid={Boolean(errors.endDate)} {...register('endDate')} />
+								<Input className="pl-10" id="project-end-at" type="datetime-local" aria-invalid={Boolean(errors.endAt)} {...register('endAt')} />
 							</div>
-							<div className="relative">
-								<Clock3 className="pointer-events-none absolute left-3 top-1/2 z-10 size-4.25 -translate-y-1/2 text-outline" aria-hidden="true" />
-								<Input className="pl-10" id="project-end-time" type="time" aria-invalid={Boolean(errors.endTime)} {...register('endTime')} />
-							</div>
-							{(errors.endDate || errors.endTime) && <p className="text-xs text-error">{errors.endDate?.message ?? errors.endTime?.message}</p>}
+							{errors.endAt && <p className="text-xs text-error">{errors.endAt.message}</p>}
 						</div>
 						<div className="grid gap-2 sm:col-span-2">
 							<Label htmlFor="project-price">Valor combinado</Label>

@@ -19,8 +19,8 @@ export interface Project {
   packageId?: string;
   title: string;
   projectType?: ProjectType;
-  startAt: string;
-  endAt: string;
+  startAt: string | null;
+  endAt: string | null;
   local: string | null;
   notes: string | null;
   status: ProjectStatus;

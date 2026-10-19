@@ -33,7 +33,7 @@ export class Project {
   @Column({
     nullable: true,
   })
-  packageId: string;
+  packageId: string | null;
 
   @Column()
   clientId: string;
@@ -64,13 +64,13 @@ export class Project {
     type: 'timestamptz',
     nullable: true,
   })
-  startAt: Date;
+  startAt: Date | null;
 
   @Column({
     type: 'timestamptz',
     nullable: true,
   })
-  endAt: Date;
+  endAt: Date | null;
 
   @Column({
     type: 'varchar',

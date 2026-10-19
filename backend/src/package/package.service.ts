@@ -9,12 +9,16 @@ import { Package } from './entities/package.entity';
 import { Repository } from 'typeorm';
 import { UpdatePackageDto } from './dto/update-package.dto';
 import { CreatePackageDto } from './dto/create-package.dto';
+import { Project } from 'src/project/entities/project.entity';
 
 @Injectable()
 export class PackageService {
   constructor(
     @InjectRepository(Package)
     private readonly packageRepository: Repository<Package>,
+
+    @InjectRepository(Project)
+    private readonly projectRepository: Repository<Project>,
   ) {}
 
   async findAll(userId: string): Promise<Package[]> {
@@ -100,10 +104,46 @@ export class PackageService {
     return await this.packageRepository.save(packageProject);
   }
 
-  async deletePackage(id: string): Promise<void> {
-    const packageProject = await this.findOneOrFail(id);
+  async deletePackage(
+    id: string,
+    userId: string,
+    confirmed = false,
+  ): Promise<void> {
+    const packageProject = await this.packageRepository.findOneBy({
+      id,
+      userId,
+    });
 
-    await this.packageRepository.delete(packageProject.id);
+    if (!packageProject) {
+      throw new NotFoundException();
+    }
+
+    const projectCount = await this.projectRepository.count({
+      where: { packageId: packageProject.id, userId },
+    });
+
+    if (projectCount > 0 && !confirmed) {
+      throw new ConflictException({
+        code: 'PACKAGE_IN_USE',
+        message: 'Package is associated with existing projects.',
+        projectCount,
+      });
+    }
+
+    await this.packageRepository.manager.transaction(async (manager) => {
+      if (projectCount > 0) {
+        await manager.update(
+          Project,
+          { packageId: packageProject.id, userId },
+          { packageId: null },
+        );
+      }
+
+      await manager.delete(Package, {
+        id: packageProject.id,
+        userId,
+      });
+    });
   }
 
   private validateBasePrice(price: number): void {

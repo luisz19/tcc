@@ -52,7 +52,11 @@ const projectTypeLabels: Record<ProjectType, string> = {
   photo_session: "Sessão de fotos",
 };
 
-function formatSchedule(startAt: string, endAt: string) {
+function formatSchedule(startAt: string | null, endAt: string | null) {
+  if (!startAt || !endAt) {
+    return "Período não informado";
+  }
+
   const formatter = new Intl.DateTimeFormat("pt-BR", {
     dateStyle: "short",
     timeStyle: "short",

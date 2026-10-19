@@ -8,8 +8,8 @@ export interface ProjectPayload {
   projectType: ProjectType;
   title: string;
   local?: string;
-  startAt: string;
-  endAt: string;
+  startAt?: string;
+  endAt?: string;
   notes?: string;
   agreed_price?: number;
 }
