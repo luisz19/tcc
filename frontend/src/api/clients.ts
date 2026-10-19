@@ -35,6 +35,8 @@ export async function updateClient(id: string, payload: ClientPayload): Promise<
 	return data;
 }
 
-export async function deleteClient(id: string): Promise<void> {
-	await api.delete(`/clients/${id}`);
+export async function deleteClient(id: string, confirm = false): Promise<void> {
+	await api.delete(`/clients/${id}`, {
+		params: confirm ? { confirm: true } : undefined,
+	});
 }

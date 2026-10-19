@@ -170,6 +170,53 @@ describe('Clients (e2e)', () => {
       .expect(404);
   });
 
+  it('exige confirmação adicional para remover cliente com projetos', async () => {
+    const token = await authenticate();
+    const { id: clientId } = await createClient(token);
+
+    const projectResponse = await request(testSetup.app.getHttpServer())
+      .post('/projects')
+      .set('Authorization', `Bearer ${token}`)
+      .send({
+        clientId,
+        title: 'Project Associated With Client',
+        startAt: '2026-10-20T10:00:00.000Z',
+        endAt: '2026-10-20T12:00:00.000Z',
+      })
+      .expect(201);
+
+    const firstDelete = await request(testSetup.app.getHttpServer())
+      .delete(`/clients/${clientId}`)
+      .set('Authorization', `Bearer ${token}`)
+      .expect(409);
+
+    expect(firstDelete.body).toMatchObject({
+      code: 'CLIENT_HAS_PROJECTS',
+      projectCount: 1,
+    });
+
+    await request(testSetup.app.getHttpServer())
+      .get(`/clients/${clientId}`)
+      .set('Authorization', `Bearer ${token}`)
+      .expect(200);
+
+    await request(testSetup.app.getHttpServer())
+      .delete(`/clients/${clientId}`)
+      .query({ confirm: 'true' })
+      .set('Authorization', `Bearer ${token}`)
+      .expect(204);
+
+    await request(testSetup.app.getHttpServer())
+      .get(`/clients/${clientId}`)
+      .set('Authorization', `Bearer ${token}`)
+      .expect(404);
+
+    await request(testSetup.app.getHttpServer())
+      .get(`/projects/${projectResponse.body.id}`)
+      .set('Authorization', `Bearer ${token}`)
+      .expect(404);
+  });
+
   it('rejeita acesso sem autenticação', async () => {
     await request(testSetup.app.getHttpServer()).get('/clients').expect(401);
     await request(testSetup.app.getHttpServer()).post('/clients').expect(401);

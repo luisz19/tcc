@@ -75,7 +75,12 @@ export class ClientController {
   public async deleteClient(
     @Param() params: findOneParams,
     @CurrentUserId() userId: string,
+    @Query('confirm') confirm?: string,
   ): Promise<void> {
-    await this.clientService.deleteClient(params.id, userId);
+    await this.clientService.deleteClient(
+      params.id,
+      userId,
+      confirm === 'true',
+    );
   }
 }
