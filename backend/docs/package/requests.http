@@ -24,7 +24,7 @@ Authorization: Bearer {{accessToken}}
 
 {
     "name": "Testee 1000",
-    "base_price": 1000
+    "base_price": -90
     
 }
 

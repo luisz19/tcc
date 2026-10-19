@@ -10,6 +10,7 @@ import { Repository } from 'typeorm';
 import { UpdatePackageDto } from './dto/update-package.dto';
 import { CreatePackageDto } from './dto/create-package.dto';
 import { Project } from 'src/project/entities/project.entity';
+import { validateMoney } from 'src/common/validators/money.validator';
 
 @Injectable()
 export class PackageService {
@@ -147,19 +148,8 @@ export class PackageService {
   }
 
   private validateBasePrice(price: number): void {
-    const basePrice = Number(price);
-
-    if (isNaN(basePrice) || basePrice <= 0) {
-      throw new BadRequestException(
-        'base_price must be a positive number greater than 0.',
-      );
-    }
-
-    const decimalPlaces = (basePrice.toString().split('.')[1] || '').length;
-    if (decimalPlaces > 2) {
-      throw new BadRequestException(
-        'base_price must have up to 2 decimal places.',
-      );
-    }
+    validateMoney(price, {
+      fieldName: 'base_priceeeeeeeeeee',
+    });
   }
 }
