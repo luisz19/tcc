@@ -1,14 +1,11 @@
-import {
-  ConflictException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Financial } from './entities/financial.entity';
 import { Repository } from 'typeorm';
 import { UpdateFinancialDto } from './dto/update-financial';
 import { CreateFinancialDto } from './dto/create-financial.dto';
 import { validateMoney } from 'src/common/validators/money.validator';
+import { FinancialStatus, FinancialType } from './model/financial.model';
 
 @Injectable()
 export class FinancialService {
@@ -62,6 +59,27 @@ export class FinancialService {
     return this.financialRepository.save(financial);
   }
 
+  async showProjectBalance(projectId: string): Promise<number> {
+    const balance = await this.calculateProjectBalance(projectId);
+    return balance;
+  }
+
+  async findFinancialByProjectId(projectId: string): Promise<Financial[]> {
+    const financials = await this.financialRepository.find({
+      where: {
+        project: { id: projectId },
+      },
+    });
+
+    if (!financials || financials.length === 0) {
+      throw new NotFoundException(
+        'No financial records found for this project.',
+      );
+    }
+
+    return financials;
+  }
+
   async deleteFinancial(id: string): Promise<void> {
     const financial = await this.findOneOrFail(id);
 
@@ -72,5 +90,24 @@ export class FinancialService {
     validateMoney(value, {
       fieldName: 'value',
     });
+  }
+
+  private async calculateProjectBalance(projectId: string): Promise<number> {
+    const movements = await this.financialRepository.find({
+      where: {
+        project: { id: projectId },
+        status: FinancialStatus.PAID,
+      },
+    });
+
+    return movements.reduce((balance, movement) => {
+      const value = Number(movement.value);
+
+      if (movement.type === FinancialType.INCOME) {
+        return balance + value;
+      }
+
+      return balance - value;
+    }, 0);
   }
 }

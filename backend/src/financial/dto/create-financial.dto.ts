@@ -16,20 +16,23 @@ export class CreateFinancialDto {
   projectId: string;
 
   @IsNotEmpty()
-  @IsString()
+  @IsString({
+    each: true,
+  })
   @IsEnum(FinancialType)
   type: FinancialType;
 
-  @IsOptional()
+  @IsString({
+    each: true,
+  })
   @IsEnum(FinancialStatus)
-  status?: FinancialStatus;
+  status: FinancialStatus;
 
   @IsOptional()
   @IsString()
   description?: string;
 
-  @IsNotEmpty()
-  @IsNumber()
+  @IsNumber({ maxDecimalPlaces: 2 })
   @IsPositive()
   value: number;
 

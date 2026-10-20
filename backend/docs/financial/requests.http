@@ -4,9 +4,9 @@
 
 @accessToken = {{login.response.body.$.accessToken}}
 
-# @projectId = {{createProject.response.body.$.id}}
+@projectId = f1bc6e40-154c-43ba-8018-55bda3ba95f0
 
-@financialId = {{createFinancial.response.body.$.id}}
+@financialId = 27a3af12-31bf-4a9e-be88-d9ea05282b2e
 
 
 ### Login
@@ -26,10 +26,10 @@ Content-Type: {{contentType}}
 Authorization: Bearer {{accessToken}}
 
 {
-    "type": "income",
-    "description": "Income from sales",
-    "value": 86.5,
-    "status": "pending",
+    "type": "expense",
+    "description": "Expense for office supplies",
+    "value": 100,
+    "status": "paid",
     "date": "2023-01-01",
     "projectId": "f1bc6e40-154c-43ba-8018-55bda3ba95f0"
 }
@@ -38,8 +38,16 @@ Authorization: Bearer {{accessToken}}
 GET {{baseUrl}}/financial
 Authorization: Bearer {{accessToken}}
 
+### Get Project Balance by project id
+GET {{baseUrl}}/financial/project/{{projectId}}/balance
+Authorization: Bearer {{accessToken}}
+
 ### Get financial by id
 GET {{baseUrl}}/financial/{{financialId}}
+Authorization: Bearer {{accessToken}}
+
+### Get financial by project id
+GET {{baseUrl}}/financial/project/{{projectId}}
 Authorization: Bearer {{accessToken}}
 
 ### Update Financial by id
@@ -48,7 +56,7 @@ Content-Type: {{contentType}}
 Authorization: Bearer {{accessToken}}
 
 {
-    "value": -2000
+    "value": 1000
 }
 
 ### Delete Financial by id

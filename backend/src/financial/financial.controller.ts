@@ -33,6 +33,20 @@ export class FinancialController {
     return this.financialService.findOneOrFail(params.id);
   }
 
+  @Get('/project/:projectId/balance')
+  public async showProjectBalance(
+    @Param('projectId') projectId: string,
+  ): Promise<number> {
+    return this.financialService.showProjectBalance(projectId);
+  }
+
+  @Get('/project/:projectId')
+  public async findFinancialByProjectId(
+    @Param('projectId') projectId: string,
+  ): Promise<Financial[]> {
+    return this.financialService.findFinancialByProjectId(projectId);
+  }
+
   @Post()
   public async createFinancial(
     @Body() createFinancialDto: CreateFinancialDto,

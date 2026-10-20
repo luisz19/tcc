@@ -35,15 +35,14 @@ export class Financial {
     nullable: false,
   })
   type: FinancialType;
-  //se for income or expense, o status pode ser pending ou paid, se for paid, o valor é adicionado ou subtraido do saldo do usuário, se for pending, o valor não é adicionado ou subtraido do saldo do usuário e caso seja expense, o status não aparece
+  //se for income or expense, o status pode ser pending ou paid, se for paid, o valor é adicionado no saldo do usuário, se for pending, o valor não é adicionado no saldo do usuário e caso seja expense, o status não aparece
 
   @Column({
     type: 'enum',
     enum: FinancialStatus,
-    nullable: true,
     default: FinancialStatus.PENDING,
   })
-  status?: FinancialStatus;
+  status: FinancialStatus;
 
   @Column({
     type: 'text',
