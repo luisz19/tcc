@@ -1,11 +1,12 @@
 import {
+  IsDateString,
   IsEnum,
   IsNotEmpty,
   IsNumber,
   IsOptional,
   IsString,
 } from 'class-validator';
-import { ProjectStatus } from '../model/project.model';
+import { ProjectStatus, ProjectType } from '../model/project.model';
 
 export class CreateProjectDto {
   userId: string;
@@ -19,6 +20,13 @@ export class CreateProjectDto {
   title: string;
 
   @IsOptional()
+  @IsString({
+    each: true,
+  })
+  @IsEnum(ProjectType)
+  projectType?: ProjectType;
+
+  @IsOptional()
   @IsString()
   local?: string;
 
@@ -27,8 +35,12 @@ export class CreateProjectDto {
   status?: ProjectStatus;
 
   @IsOptional()
-  @IsString()
-  date?: string;
+  @IsDateString()
+  startAt?: string;
+
+  @IsOptional()
+  @IsDateString()
+  endAt?: string;
 
   @IsOptional()
   @IsString()
@@ -41,4 +53,5 @@ export class CreateProjectDto {
   @IsOptional()
   @IsString()
   packageId?: string;
+
 }

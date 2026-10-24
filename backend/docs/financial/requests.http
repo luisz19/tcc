@@ -4,9 +4,9 @@
 
 @accessToken = {{login.response.body.$.accessToken}}
 
-# @projectId = {{createProject.response.body.$.id}}
+@projectId = f1bc6e40-154c-43ba-8018-55bda3ba95f0
 
-@financialId = 80b0988d-4595-46f0-b68c-9cd3b781f20c
+@financialId = 27a3af12-31bf-4a9e-be88-d9ea05282b2e
 
 
 ### Login
@@ -26,28 +26,41 @@ Content-Type: {{contentType}}
 Authorization: Bearer {{accessToken}}
 
 {
-    "type": "income",
-    "description": "Income from sales",
+    "type": "expense",
+    "description": "Expense for office supplies",
     "value": 1000,
-    "status": "pending",
-    "date": "2023-01-01"
+    "status": "paid",
+    "date": "2023-05-01",
+    "projectId": "f1bc6e40-154c-43ba-8018-55bda3ba95f0"
 }
 
 ### Get all financial
 GET {{baseUrl}}/financial
 Authorization: Bearer {{accessToken}}
 
+### Get Project Balance by project id
+GET {{baseUrl}}/financial/project/{{projectId}}/balance
+Authorization: Bearer {{accessToken}}
+
 ### Get financial by id
 GET {{baseUrl}}/financial/{{financialId}}
 Authorization: Bearer {{accessToken}}
 
+### Get financial by project id
+GET {{baseUrl}}/financial/project/{{projectId}}
+Authorization: Bearer {{accessToken}}
+
+### Get financial by month
+GET {{baseUrl}}/financial/monthly?month=1
+Authorization: Bearer {{accessToken}}
+
 ### Update Financial by id
-PATCH {{baseUrl}}/financial/{{financialId}}
+PATCH {{baseUrl}}/financial/af043b4b-c095-4522-aa3a-76db987759cc
 Content-Type: {{contentType}}
 Authorization: Bearer {{accessToken}}
 
 {
-    "value": 2000
+    "type": "income"
 }
 
 ### Delete Financial by id

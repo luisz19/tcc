@@ -5,3 +5,8 @@ export enum ProjectStatus {
   COMPLETED = 'completed',
   CANCELED = 'canceled',
 }
+
+export enum ProjectType {
+  EVENT = 'event',
+  PHOTO_SESSION = 'photo_session',
+}

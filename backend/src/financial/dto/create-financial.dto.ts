@@ -3,6 +3,7 @@ import {
   IsNotEmpty,
   IsNumber,
   IsOptional,
+  IsPositive,
   IsString,
 } from 'class-validator';
 import { FinancialStatus, FinancialType } from '../model/financial.model';
@@ -12,19 +13,28 @@ export class CreateFinancialDto {
 
   @IsNotEmpty()
   @IsString()
+  projectId: string;
+
+  @IsNotEmpty()
+  @IsString({
+    each: true,
+  })
   @IsEnum(FinancialType)
   type: FinancialType;
 
-  @IsOptional()
+  @IsString({
+    each: true,
+  })
   @IsEnum(FinancialStatus)
-  status?: FinancialStatus;
+  @IsNotEmpty()
+  status: FinancialStatus;
 
   @IsOptional()
   @IsString()
   description?: string;
 
-  @IsNotEmpty()
-  @IsNumber()
+  @IsNumber({ maxDecimalPlaces: 2 })
+  @IsPositive()
   value: number;
 
   @IsNotEmpty()

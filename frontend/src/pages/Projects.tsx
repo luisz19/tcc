@@ -48,15 +48,16 @@ const statusClasses: Record<ProjectStatus, string> = {
   canceled: "bg-error-container text-on-error-container",
 };
 
-function formatDate(date: string | null) {
-  if (!date) {
-    return "Data não informada";
+function formatSchedule(startAt: string | null, endAt: string | null) {
+  if (!startAt || !endAt) {
+    return "Período não informado";
   }
 
-  const [year, month, day] = date.split("-").map(Number);
-  return new Intl.DateTimeFormat("pt-BR").format(
-    new Date(year, month - 1, day)
-  );
+  const formatter = new Intl.DateTimeFormat("pt-BR", {
+    dateStyle: "short",
+    timeStyle: "short",
+  });
+  return `${formatter.format(new Date(startAt))} - ${formatter.format(new Date(endAt))}`;
 }
 
 function formatPrice(price: number | string | null) {
@@ -292,7 +293,7 @@ function Projects({
                     <div className="mt-4 flex flex-wrap gap-x-5 gap-y-2 text-xs text-on-surface-variant">
                       <span className="inline-flex items-center gap-1.5">
                         <CalendarDays className="size-3.5" aria-hidden="true" />
-                        {formatDate(project.date)}
+                        {formatSchedule(project.startAt, project.endAt)}
                       </span>
                       {project.local && (
                         <span className="inline-flex items-center gap-1.5">

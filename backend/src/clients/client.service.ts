@@ -65,7 +65,8 @@ export class ClientService {
       select: {
         id: true,
         title: true,
-        date: true,
+        startAt: true,
+        endAt: true,
       },
     });
   }
@@ -103,9 +104,27 @@ export class ClientService {
     return this.clientsRepository.save(clients);
   }
 
-  async deleteClient(id: string, userId: string): Promise<void> {
+  async deleteClient(
+    id: string,
+    userId: string,
+    confirmed = false,
+  ): Promise<void> {
     const clients = await this.findOneOrFail(id, userId);
+    const projectCount = await this.projectsRepository.count({
+      where: { clientId: clients.id, userId },
+    });
 
-    await this.clientsRepository.delete(clients.id);
+    if (projectCount > 0 && !confirmed) {
+      throw new ConflictException({
+        code: 'CLIENT_HAS_PROJECTS',
+        message: 'Client has projects associated with it.',
+        projectCount,
+      });
+    }
+
+    await this.clientsRepository.manager.transaction(async (manager) => {
+      await manager.delete(Project, { clientId: clients.id, userId });
+      await manager.delete(Client, { id: clients.id, userId });
+    });
   }
 }

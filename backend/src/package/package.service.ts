@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ConflictException,
   Injectable,
   NotFoundException,
@@ -8,12 +9,17 @@ import { Package } from './entities/package.entity';
 import { Repository } from 'typeorm';
 import { UpdatePackageDto } from './dto/update-package.dto';
 import { CreatePackageDto } from './dto/create-package.dto';
+import { Project } from 'src/project/entities/project.entity';
+import { validateMoney } from 'src/common/validators/money.validator';
 
 @Injectable()
 export class PackageService {
   constructor(
     @InjectRepository(Package)
     private readonly packageRepository: Repository<Package>,
+
+    @InjectRepository(Project)
+    private readonly projectRepository: Repository<Project>,
   ) {}
 
   async findAll(userId: string): Promise<Package[]> {
@@ -51,7 +57,16 @@ export class PackageService {
       );
     }
 
-    const packageProject = this.packageRepository.create(createPackageDto);
+    this.validateBasePrice(createPackageDto.base_price);
+
+    const formattedPrice =
+      Math.round(Number(createPackageDto.base_price) * 100) / 100;
+
+    const packageProject = this.packageRepository.create({
+      ...createPackageDto,
+      base_price: formattedPrice,
+    });
+
     return await this.packageRepository.save(packageProject);
   }
 
@@ -61,13 +76,80 @@ export class PackageService {
   ): Promise<Package> {
     const packageProject = await this.findOneOrFail(id);
 
+    if (updatePackageDto.base_price !== undefined) {
+      this.validateBasePrice(updatePackageDto.base_price);
+      updatePackageDto.base_price =
+        Math.round(Number(updatePackageDto.base_price) * 100) / 100;
+    }
+
+    if (
+      updatePackageDto.name &&
+      updatePackageDto.name !== packageProject.name
+    ) {
+      const existingPackage = await this.packageRepository.findOne({
+        where: {
+          name: updatePackageDto.name,
+          userId: packageProject.userId,
+        },
+      });
+
+      if (existingPackage) {
+        throw new ConflictException(
+          'Package with the same name already exists for this user.',
+        );
+      }
+    }
+
     Object.assign(packageProject, updatePackageDto);
-    return this.packageRepository.save(packageProject);
+
+    return await this.packageRepository.save(packageProject);
   }
 
-  async deletePackage(id: string): Promise<void> {
-    const packageProject = await this.findOneOrFail(id);
+  async deletePackage(
+    id: string,
+    userId: string,
+    confirmed = false,
+  ): Promise<void> {
+    const packageProject = await this.packageRepository.findOneBy({
+      id,
+      userId,
+    });
 
-    await this.packageRepository.delete(packageProject.id);
+    if (!packageProject) {
+      throw new NotFoundException();
+    }
+
+    const projectCount = await this.projectRepository.count({
+      where: { packageId: packageProject.id, userId },
+    });
+
+    if (projectCount > 0 && !confirmed) {
+      throw new ConflictException({
+        code: 'PACKAGE_IN_USE',
+        message: 'Package is associated with existing projects.',
+        projectCount,
+      });
+    }
+
+    await this.packageRepository.manager.transaction(async (manager) => {
+      if (projectCount > 0) {
+        await manager.update(
+          Project,
+          { packageId: packageProject.id, userId },
+          { packageId: null },
+        );
+      }
+
+      await manager.delete(Package, {
+        id: packageProject.id,
+        userId,
+      });
+    });
+  }
+
+  private validateBasePrice(price: number): void {
+    validateMoney(price, {
+      fieldName: 'base_price',
+    });
   }
 }

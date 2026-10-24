@@ -12,6 +12,15 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { getPackages, deletePackage } from "@/api/package";
 import type { Package } from "@/types/packages";
 import { useAuth } from "@/context/AuthContext";
@@ -34,6 +43,10 @@ function Packages({ onCreatePackage, onEditPackage }: PackagesProps) {
   const [packages, setPackages] = useState<Package[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [selectedPackage, setSelectedPackage] = useState<Package | null>(null);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isInUseDialogOpen, setIsInUseDialogOpen] = useState(false);
+  const [projectCount, setProjectCount] = useState(0);
   const [errorMessage, setErrorMessage] = useState("");
 
   useEffect(() => {
@@ -65,18 +78,53 @@ function Packages({ onCreatePackage, onEditPackage }: PackagesProps) {
     };
   }, []);
 
-  async function handleDelete(packageItem: Package) {
-    if (!window.confirm(`Excluir o pacote "${packageItem.name}"?`)) {
+  function handleDelete(packageItem: Package) {
+    setSelectedPackage(packageItem);
+    setIsDeleteDialogOpen(true);
+  }
+
+  async function confirmDelete() {
+    if (!selectedPackage) {
       return;
     }
 
-    setDeletingId(packageItem.id);
+    setDeletingId(selectedPackage.id);
     setErrorMessage("");
     try {
-      await deletePackage(packageItem.id);
+      await deletePackage(selectedPackage.id);
       setPackages((currentPackages) =>
-        currentPackages.filter(({ id }) => id !== packageItem.id)
+        currentPackages.filter(({ id }) => id !== selectedPackage.id)
       );
+      setIsDeleteDialogOpen(false);
+    } catch (error) {
+      if (
+        isAxiosError(error) &&
+        error.response?.data?.code === "PACKAGE_IN_USE"
+      ) {
+        setProjectCount(Number(error.response.data.projectCount ?? 0));
+        setIsDeleteDialogOpen(false);
+        setIsInUseDialogOpen(true);
+      } else {
+        setErrorMessage("Não foi possível excluir o pacote agora.");
+      }
+    } finally {
+      setDeletingId(null);
+    }
+  }
+
+  async function confirmDeleteInUse() {
+    if (!selectedPackage) {
+      return;
+    }
+
+    setDeletingId(selectedPackage.id);
+    setErrorMessage("");
+    try {
+      await deletePackage(selectedPackage.id, true);
+      setPackages((currentPackages) =>
+        currentPackages.filter(({ id }) => id !== selectedPackage.id)
+      );
+      setIsInUseDialogOpen(false);
     } catch {
       setErrorMessage("Não foi possível excluir o pacote agora.");
     } finally {
@@ -197,7 +245,7 @@ function Packages({ onCreatePackage, onEditPackage }: PackagesProps) {
                         variant="ghost"
                         size="icon"
                         type="button"
-                        onClick={() => void handleDelete(packageItem)}
+                        onClick={() => handleDelete(packageItem)}
                         disabled={deletingId === packageItem.id}
                         aria-label={`Excluir pacote ${packageItem.name}`}
                         title="Excluir pacote"
@@ -222,6 +270,76 @@ function Packages({ onCreatePackage, onEditPackage }: PackagesProps) {
           </div>
         )}
       </section>
+
+      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Excluir pacote?</DialogTitle>
+            <DialogDescription>
+              Essa ação removerá o pacote{" "}
+              <strong className="font-semibold text-on-surface">
+                {selectedPackage?.name}
+              </strong>{" "}
+              permanentemente.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <DialogClose
+              render={
+                <Button variant="outline" type="button" disabled={Boolean(deletingId)} />
+              }
+            >
+              Cancelar
+            </DialogClose>
+            <Button
+              variant="destructive"
+              type="button"
+              onClick={() => void confirmDelete()}
+              disabled={Boolean(deletingId)}
+            >
+              {deletingId ? "Excluindo..." : "Excluir pacote"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={isInUseDialogOpen} onOpenChange={setIsInUseDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Pacote em uso</DialogTitle>
+            <DialogDescription>
+              Este pacote está associado a {projectCount}{" "}
+              {projectCount === 1 ? "projeto" : "projetos"}. Os projetos serão
+              mantidos, mas ficarão sem pacote associado. Deseja continuar?
+            </DialogDescription>
+          </DialogHeader>
+          {errorMessage && (
+            <Alert
+              variant="destructive"
+              className="border-error/25 bg-error-container text-on-error-container"
+            >
+              <AlertDescription>{errorMessage}</AlertDescription>
+            </Alert>
+          )}
+          <DialogFooter>
+            <DialogClose
+              render={
+                <Button variant="outline" type="button" disabled={Boolean(deletingId)} />
+              }
+            >
+              Cancelar
+            </DialogClose>
+            <Button
+              variant="destructive"
+              type="button"
+              onClick={() => void confirmDeleteInUse()}
+              disabled={Boolean(deletingId)}
+            >
+              {deletingId ? "Excluindo..." : "Excluir e desvincular"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <button
         className="fixed bottom-20 right-5 z-20 grid size-12 place-items-center rounded-lg bg-primary text-on-primary shadow-level-2 transition-transform hover:-translate-y-0.5 hover:bg-primary-container focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 sm:bottom-24 sm:right-8"

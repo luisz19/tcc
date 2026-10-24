@@ -8,9 +8,11 @@ import {
   PrimaryGeneratedColumn,
   JoinColumn,
   UpdateDateColumn,
+  OneToMany,
 } from 'typeorm';
-import { ProjectStatus } from '../model/project.model';
+import { ProjectStatus, ProjectType } from '../model/project.model';
 import { Client } from 'src/clients/entities/client.entity';
+import { Financial } from 'src/financial/entities/financial.entity';
 
 @Entity()
 export class Project {
@@ -25,6 +27,11 @@ export class Project {
   })
   user: User;
 
+  @OneToMany(() => Financial, (financial) => financial.project, {
+    nullable: true,
+  })
+  financial?: Financial[];
+
   @ManyToOne(() => Package, (pkg) => pkg.projects, {
     nullable: true,
   })
@@ -33,7 +40,7 @@ export class Project {
   @Column({
     nullable: true,
   })
-  packageId: string;
+  packageId: string | null;
 
   @Column()
   clientId: string;
@@ -52,10 +59,25 @@ export class Project {
   title: string;
 
   @Column({
-    type: 'date',
+    type: 'enum',
+    enum: ProjectType,
+    nullable: true,
+    default: ProjectType.PHOTO_SESSION,
+    name: 'project_type',
+  })
+  projectType?: ProjectType;
+
+  @Column({
+    type: 'timestamptz',
     nullable: true,
   })
-  date: string;
+  startAt: Date | null;
+
+  @Column({
+    type: 'timestamptz',
+    nullable: true,
+  })
+  endAt: Date | null;
 
   @Column({
     type: 'varchar',

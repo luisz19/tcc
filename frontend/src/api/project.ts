@@ -1,13 +1,15 @@
 import api from "./api";
-import type { Project, ProjectStatus } from "@/types/projects";
+import type { Project, ProjectStatus, ProjectType } from "@/types/projects";
 
 export interface ProjectPayload {
   clientId: string;
   packageId?: string | null;
   status?: ProjectStatus;
+  projectType: ProjectType;
   title: string;
   local?: string;
-  date?: string;
+  startAt?: string;
+  endAt?: string;
   notes?: string;
   agreed_price?: number;
 }

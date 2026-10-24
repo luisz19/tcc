@@ -22,6 +22,8 @@ export async function updatePackage(id: string, payload: Partial<PackagePayload>
   return data;
 }
 
-export async function deletePackage(id: string): Promise<void> {
-  await api.delete(`/packages/${id}`);
+export async function deletePackage(id: string, confirm = false): Promise<void> {
+  await api.delete(`/packages/${id}`, {
+    params: confirm ? { confirm: true } : undefined,
+  });
 }

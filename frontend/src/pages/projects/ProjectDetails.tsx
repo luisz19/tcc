@@ -16,7 +16,7 @@ import { getClients } from "@/api/clients";
 import { getPackages } from "@/api/package";
 import type { Client } from "@/types/clients";
 import type { Package } from "@/types/packages";
-import { projectStatuses, type Project, type ProjectStatus } from "@/types/projects";
+import { projectStatuses, type Project, type ProjectStatus, type ProjectType } from "@/types/projects";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -47,15 +47,21 @@ const statusClasses: Record<ProjectStatus, string> = {
   canceled: "bg-error-container text-on-error-container",
 };
 
-function formatDate(date: string | null) {
-  if (!date) {
-    return "Data não informada";
+const projectTypeLabels: Record<ProjectType, string> = {
+  event: "Evento",
+  photo_session: "Sessão de fotos",
+};
+
+function formatSchedule(startAt: string | null, endAt: string | null) {
+  if (!startAt || !endAt) {
+    return "Período não informado";
   }
 
-  const [year, month, day] = date.split("-").map(Number);
-  return new Intl.DateTimeFormat("pt-BR").format(
-    new Date(year, month - 1, day)
-  );
+  const formatter = new Intl.DateTimeFormat("pt-BR", {
+    dateStyle: "short",
+    timeStyle: "short",
+  });
+  return `${formatter.format(new Date(startAt))} - ${formatter.format(new Date(endAt))}`;
 }
 
 function formatPrice(price: number | string | null) {
@@ -228,6 +234,9 @@ function ProjectDetails() {
                 <p className="text-sm text-on-surface-variant">
                   {client?.name ?? "Cliente não encontrado"}
                 </p>
+                <p className="text-sm text-on-surface-variant">
+                  {projectTypeLabels[project.projectType ?? "photo_session"]}
+                </p>
               </CardContent>
             </Card>
             <Card className="mt-4 border-0 bg-surface-container-lowest shadow-level-1">
@@ -242,8 +251,8 @@ function ProjectDetails() {
                       aria-hidden="true"
                     />
                     <div>
-                      <p className="text-xs text-on-surface-variant">Data</p>
-                      <p className="mt-1">{formatDate(project.date)}</p>
+                      <p className="text-xs text-on-surface-variant">Período</p>
+                      <p className="mt-1">{formatSchedule(project.startAt, project.endAt)}</p>
                     </div>
                   </div>
                   <div className="flex items-start gap-3">

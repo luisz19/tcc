@@ -45,6 +45,8 @@ function ClientDetails() {
   const [isLoading, setIsLoading] = useState(true);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isProjectConflictDialogOpen, setIsProjectConflictDialogOpen] = useState(false);
+  const [projectConflictCount, setProjectConflictCount] = useState(0);
   const [errorMessage, setErrorMessage] = useState("");
   const [projectsByClient, setProjectsByClient] = useState<
     ClientProjectSummary[]
@@ -93,6 +95,29 @@ function ClientDetails() {
     try {
       await deleteClient(client.id);
       setIsDeleteDialogOpen(false);
+      navigate("/clients");
+    } catch (error) {
+      if (isAxiosError(error) && error.response?.data?.code === "CLIENT_HAS_PROJECTS") {
+        setProjectConflictCount(Number(error.response.data.projectCount ?? 0));
+        setIsDeleteDialogOpen(false);
+        setIsProjectConflictDialogOpen(true);
+      } else {
+        setErrorMessage("Não foi possível excluir o cliente agora.");
+      }
+      setIsDeleting(false);
+    }
+  }
+
+  async function handleConfirmedDelete() {
+    if (!client) {
+      return;
+    }
+
+    setIsDeleting(true);
+    setErrorMessage("");
+    try {
+      await deleteClient(client.id, true);
+      setIsProjectConflictDialogOpen(false);
       navigate("/clients");
     } catch {
       setErrorMessage("Não foi possível excluir o cliente agora.");
@@ -274,11 +299,12 @@ function ClientDetails() {
                             className="size-3.5"
                             aria-hidden="true"
                           />
-                          {project.date
-                            ? new Intl.DateTimeFormat("pt-BR").format(
-                                new Date(`${project.date}T00:00:00`)
-                              )
-                            : "Data não informada"}
+                          {project.startAt
+                            ? new Intl.DateTimeFormat("pt-BR", {
+                                dateStyle: "short",
+                                timeStyle: "short",
+                              }).format(new Date(project.startAt))
+                            : "Período não informado"}
                         </span>
                       </CardContent>
                     </Card>
@@ -357,6 +383,48 @@ function ClientDetails() {
                 />
               )}
               {isDeleting ? "Excluindo..." : "Excluir cliente"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog
+        open={isProjectConflictDialogOpen}
+        onOpenChange={setIsProjectConflictDialogOpen}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Cliente possui projetos</DialogTitle>
+            <DialogDescription>
+              Este cliente possui {projectConflictCount}{" "}
+              {projectConflictCount === 1 ? "projeto associado" : "projetos associados"}.
+              Se continuar, o cliente e todos os projetos associados serão excluídos.
+              Essa ação não pode ser desfeita.
+            </DialogDescription>
+          </DialogHeader>
+          {errorMessage && (
+            <Alert
+              variant="destructive"
+              className="border-error/25 bg-error-container text-on-error-container"
+            >
+              <AlertDescription>{errorMessage}</AlertDescription>
+            </Alert>
+          )}
+          <DialogFooter>
+            <DialogClose
+              render={
+                <Button variant="outline" type="button" disabled={isDeleting} />
+              }
+            >
+              Cancelar
+            </DialogClose>
+            <Button
+              variant="destructive"
+              type="button"
+              onClick={() => void handleConfirmedDelete()}
+              disabled={isDeleting}
+            >
+              {isDeleting ? "Excluindo..." : "Excluir cliente e projetos"}
             </Button>
           </DialogFooter>
         </DialogContent>
