@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Financial } from './entities/financial.entity';
 import { Repository } from 'typeorm';
@@ -6,6 +10,17 @@ import { UpdateFinancialDto } from './dto/update-financial';
 import { CreateFinancialDto } from './dto/create-financial.dto';
 import { validateMoney } from 'src/common/validators/money.validator';
 import { FinancialStatus, FinancialType } from './model/financial.model';
+
+export interface MonthlyFinancialSummary {
+  incomePaid: number;
+  expensePaid: number;
+  monthlyResult: number;
+}
+
+export interface MonthlyFinancialResponse {
+  summary: MonthlyFinancialSummary;
+  financials: Financial[];
+}
 
 @Injectable()
 export class FinancialService {
@@ -62,6 +77,69 @@ export class FinancialService {
   async showProjectBalance(projectId: string): Promise<number> {
     const balance = await this.calculateProjectBalance(projectId);
     return balance;
+  }
+
+  async findFinancialByMonth(
+    userId: string,
+    month?: number,
+    year?: number,
+  ): Promise<MonthlyFinancialResponse> {
+    if (month === undefined && year === undefined) {
+      throw new BadRequestException('Month or year must be provided.');
+    }
+
+    if (
+      month !== undefined &&
+      (!Number.isInteger(month) || month < 1 || month > 12)
+    ) {
+      throw new BadRequestException('Month must be between 1 and 12.');
+    }
+
+    if (year !== undefined && (!Number.isInteger(year) || year < 1)) {
+      throw new BadRequestException('Year must be a positive integer.');
+    }
+
+    const selectedYear = year ?? new Date().getFullYear();
+    const startMonth = month ?? 1;
+    const isFullYear = month === undefined;
+    const endYear =
+      isFullYear || startMonth === 12 ? selectedYear + 1 : selectedYear;
+    const endMonth = isFullYear || startMonth === 12 ? 1 : startMonth + 1;
+    const startDate = `${selectedYear}-${String(startMonth).padStart(2, '0')}-01`;
+    const endDate = `${endYear}-${String(endMonth).padStart(2, '0')}-01`;
+
+    const financials = await this.financialRepository
+      .createQueryBuilder('financial')
+      .where('financial.userId = :userId', { userId })
+      .andWhere('financial.date >= :startDate AND financial.date < :endDate', {
+        startDate,
+        endDate,
+      })
+      .orderBy('financial.date', 'DESC')
+      .getMany();
+
+    const paidFinancials = financials.filter(
+      (item) => item.status === FinancialStatus.PAID,
+    );
+
+    const incomePaid = paidFinancials
+      .filter((item) => item.type === FinancialType.INCOME)
+      .reduce((acc, item) => acc + (Number(item.value) || 0), 0);
+
+    const expensePaid = paidFinancials
+      .filter((item) => item.type === FinancialType.EXPENSE)
+      .reduce((acc, item) => acc + (Number(item.value) || 0), 0);
+
+    const monthlyResult = Math.round((incomePaid - expensePaid) * 100) / 100;
+
+    return {
+      summary: {
+        incomePaid: Math.round(incomePaid * 100) / 100,
+        expensePaid: Math.round(expensePaid * 100) / 100,
+        monthlyResult,
+      },
+      financials,
+    };
   }
 
   async findFinancialByProjectId(projectId: string): Promise<Financial[]> {

@@ -6,11 +6,16 @@ import {
   HttpCode,
   HttpStatus,
   Param,
+  ParseIntPipe,
   Patch,
   Post,
+  Query,
   UseGuards,
 } from '@nestjs/common';
-import { FinancialService } from './financial.service';
+import {
+  FinancialService,
+  MonthlyFinancialResponse,
+} from './financial.service';
 import { Financial } from './entities/financial.entity';
 import { findOneParams } from 'src/find-one.params';
 import { CreateFinancialDto } from './dto/create-financial.dto';
@@ -26,6 +31,15 @@ export class FinancialController {
   @Get()
   public async findAll(@CurrentUserId() userId: string): Promise<Financial[]> {
     return this.financialService.findAll(userId);
+  }
+
+  @Get('/monthly')
+  public async findFinancialByMonth(
+    @CurrentUserId() userId: string,
+    @Query('month', new ParseIntPipe({ optional: true })) month?: number,
+    @Query('year', new ParseIntPipe({ optional: true })) year?: number,
+  ): Promise<MonthlyFinancialResponse> {
+    return this.financialService.findFinancialByMonth(userId, month, year);
   }
 
   @Get('/:id')

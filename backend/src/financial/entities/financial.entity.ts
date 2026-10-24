@@ -41,6 +41,7 @@ export class Financial {
     type: 'enum',
     enum: FinancialStatus,
     default: FinancialStatus.PENDING,
+    nullable: false,
   })
   status: FinancialStatus;
 

@@ -26,6 +26,7 @@ export class CreateFinancialDto {
     each: true,
   })
   @IsEnum(FinancialStatus)
+  @IsNotEmpty()
   status: FinancialStatus;
 
   @IsOptional()
