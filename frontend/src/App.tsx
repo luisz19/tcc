@@ -6,6 +6,7 @@ import Projects from './pages/Projects'
 import Packages from './pages/Packages'
 import Home from './pages/Home'
 import Financial from './pages/Financial'
+import FinancialForm from './pages/financials/FinancialForm'
 import ClientForm from './pages/clients/ClientForm'
 import ClientDetails from './pages/clients/ClientDetails'
 import ProjectForm from './pages/projects/ProjectForm'
@@ -15,6 +16,7 @@ import AuthenticatedLayout from './components/common/AuthenticatedLayout'
 import type { Client } from './types/clients'
 import type { Project } from './types/projects'
 import type { Package } from './types/packages'
+import type { Financial as FinancialRecord } from './types/financial'
 import { useAuth } from './context/AuthContext'
 
 function ProjectEditRoute({ project }: { project?: Project }) {
@@ -47,6 +49,54 @@ function PackageEditRoute({ packageItem }: { packageItem?: Package }) {
   return <PackageForm packageItem={packageItem} onCancel={() => navigate('/projects/packages')} onSaved={() => navigate('/projects/packages')} />
 }
 
+function FinancialEditRoute({ financial }: { financial?: FinancialRecord }) {
+  const navigate = useNavigate()
+  const location = useLocation()
+  const locationState = location.state as {
+    fromProjectId?: string
+    fromProject?: boolean
+    projectId?: string
+  } | undefined
+
+  if (!financial) {
+    return <Navigate to="/finance" replace />
+  }
+
+  const handleReturn = () => {
+    if (locationState?.fromProjectId) {
+      navigate(`/projects/${locationState.fromProjectId}`)
+    } else if (locationState?.fromProject && financial.projectId) {
+      navigate(`/projects/${financial.projectId}`)
+    } else {
+      navigate('/finance')
+    }
+  }
+
+  return <FinancialForm financial={financial} onCancel={handleReturn} onSaved={handleReturn} />
+}
+
+function FinancialNewRoute() {
+  const navigate = useNavigate()
+  const location = useLocation()
+  const locationState = location.state as {
+    fromProjectId?: string
+    fromProject?: boolean
+    projectId?: string
+  } | undefined
+
+  const handleReturn = () => {
+    if (locationState?.fromProjectId) {
+      navigate(`/projects/${locationState.fromProjectId}`)
+    } else if (locationState?.fromProject && locationState?.projectId) {
+      navigate(`/projects/${locationState.projectId}`)
+    } else {
+      navigate('/finance')
+    }
+  }
+
+  return <FinancialForm onCancel={handleReturn} onSaved={handleReturn} />
+}
+
 function App() {
   const { isAuthenticated } = useAuth()
   const navigate = useNavigate()
@@ -54,6 +104,7 @@ function App() {
   const selectedProject = location.state?.project as Project | undefined
   const selectedClient = location.state?.client as Client | undefined
   const selectedPackage = location.state?.packageItem as Package | undefined
+  const selectedFinancial = location.state?.financial as FinancialRecord | undefined
 
   if (!isAuthenticated) {
     return (
@@ -83,7 +134,9 @@ function App() {
         <Route path="/clients/:id" element={<ClientDetails />} />
         <Route path="/clients/:id/edit" element={<ClientEditRoute client={selectedClient} />} />
 
-        <Route path="/finance" element={<Financial />} />
+        <Route path="/finance" element={<Financial onCreateFinancial={() => navigate('/finance/new')} onEditFinancial={(financial) => navigate(`/finance/${financial.id}/edit`, { state: { financial } })} />} />
+        <Route path="/finance/new" element={<FinancialNewRoute />} />
+        <Route path="/finance/:id/edit" element={<FinancialEditRoute financial={selectedFinancial} />} />
         
         <Route path="*" element={<Navigate to="/home" replace />} />
       </Route>
