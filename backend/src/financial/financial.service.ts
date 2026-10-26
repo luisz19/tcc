@@ -147,13 +147,10 @@ export class FinancialService {
       where: {
         project: { id: projectId },
       },
+      order: {
+        date: 'DESC',
+      },
     });
-
-    if (!financials || financials.length === 0) {
-      throw new NotFoundException(
-        'No financial records found for this project.',
-      );
-    }
 
     return financials;
   }
