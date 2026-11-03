@@ -11,5 +11,6 @@ import { Project } from 'src/project/entities/project.entity';
   imports: [TypeOrmModule.forFeature([Financial, Project]), AuthModule],
   controllers: [FinancialController],
   providers: [FinancialService],
+  exports: [FinancialService],
 })
 export class FinancialModule {}

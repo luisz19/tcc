@@ -14,6 +14,7 @@ import { PackageModule } from './package/package.module';
 import { ClientModule } from './clients/client.module';
 import { ProjectModule } from './project/project.module';
 import { FinancialModule } from './financial/financial.module';
+import { DashboardModule } from './dashboard/dashboard.module';
 
 @Module({
   imports: [
@@ -39,6 +40,7 @@ import { FinancialModule } from './financial/financial.module';
     ClientModule,
     ProjectModule,
     FinancialModule,
+    DashboardModule,
   ],
   controllers: [AppController],
   providers: [

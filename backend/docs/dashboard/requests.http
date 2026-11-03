@@ -1,0 +1,22 @@
+@baseUrl = http://localhost:3000
+
+@contentType = application/json
+
+@accessToken = {{login.response.body.$.accessToken}}
+
+@financialId = 27a3af12-31bf-4a9e-be88-d9ea05282b2e
+
+
+### Login
+# @name login
+POST {{baseUrl}}/auth/login
+Content-Type: {{contentType}}
+
+{
+    "email": "john123123@example.com",
+    "password": "Password123!"
+}
+
+### Get dashboard summary
+GET {{baseUrl}}/dashboard?year=2026
+Authorization: Bearer {{accessToken}}
