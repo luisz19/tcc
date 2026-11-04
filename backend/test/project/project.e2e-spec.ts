@@ -318,6 +318,36 @@ describe('Projects (e2e)', () => {
   });
 
   it('adicionar movimentação financeira a um projeto', async () => {
-   
+    const token = await authenticate();
+    const { id } = await createProject(token, {
+      title: 'Project with Financial Movement',
+    });
+
+    const movementPayload = {
+      type: 'income',
+      amount: 150.0,
+      description: 'Initial Payment',
+      date: '2023-01-02T10:00:00.000Z',
+    };
+
+    await request(testSetup.app.getHttpServer())
+      .post(`/projects/${id}/financial-movements`)
+      .set('Authorization', `Bearer ${token}`)
+      .send(movementPayload)
+      .expect(201)
+      .expect((response) => {
+        expect(response.body).toMatchObject(movementPayload);
+        expect(response.body).toHaveProperty('id');
+      });
+
+    await request(testSetup.app.getHttpServer())
+      .get(`/projects/${id}/financial-movements`)
+      .set('Authorization', `Bearer ${token}`)
+      .expect(200)
+      .expect((response) => {
+        expect(response.body).toEqual(
+          expect.arrayContaining([expect.objectContaining(movementPayload)]),
+        );
+      });
   });
 });

@@ -30,7 +30,7 @@ Authorization: Bearer {{accessToken}}
     "description": "Expense for office supplies",
     "value": 1000,
     "status": "paid",
-    "date": "2023-05-01",
+    "date": "2026-11-01",
     "projectId": "f1bc6e40-154c-43ba-8018-55bda3ba95f0"
 }
 
