@@ -84,28 +84,27 @@ export class FinancialService {
     month?: number,
     year?: number,
   ): Promise<MonthlyFinancialResponse> {
-    if (month === undefined && year === undefined) {
-      throw new BadRequestException('Month or year must be provided.');
-    }
+    const currentDate = new Date();
+
+    const selectedYear = year ?? currentDate.getFullYear();
+    const selectedMonth = month ?? currentDate.getMonth() + 1;
 
     if (
-      month !== undefined &&
-      (!Number.isInteger(month) || month < 1 || month > 12)
+      !Number.isInteger(selectedMonth) ||
+      selectedMonth < 1 ||
+      selectedMonth > 12
     ) {
       throw new BadRequestException('Month must be between 1 and 12.');
     }
 
-    if (year !== undefined && (!Number.isInteger(year) || year < 1)) {
+    if (!Number.isInteger(selectedYear) || selectedYear < 1) {
       throw new BadRequestException('Year must be a positive integer.');
     }
 
-    const selectedYear = year ?? new Date().getFullYear();
-    const startMonth = month ?? 1;
-    const isFullYear = month === undefined;
-    const endYear =
-      isFullYear || startMonth === 12 ? selectedYear + 1 : selectedYear;
-    const endMonth = isFullYear || startMonth === 12 ? 1 : startMonth + 1;
-    const startDate = `${selectedYear}-${String(startMonth).padStart(2, '0')}-01`;
+    const endYear = selectedMonth === 12 ? selectedYear + 1 : selectedYear;
+    const endMonth = selectedMonth === 12 ? 1 : selectedMonth + 1;
+
+    const startDate = `${selectedYear}-${String(selectedMonth).padStart(2, '0')}-01`;
     const endDate = `${endYear}-${String(endMonth).padStart(2, '0')}-01`;
 
     const financials = await this.financialRepository

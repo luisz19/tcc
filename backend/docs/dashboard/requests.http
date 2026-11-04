@@ -18,5 +18,5 @@ Content-Type: {{contentType}}
 }
 
 ### Get dashboard summary
-GET {{baseUrl}}/dashboard?year=2026
+GET {{baseUrl}}/dashboard?month=11&year=2026
 Authorization: Bearer {{accessToken}}
