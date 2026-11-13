@@ -25,6 +25,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import "../App.css";
 import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 
 interface DashboardProps {
   onCreateProject?: () => void;
@@ -130,6 +131,74 @@ function getErrorMessage(error: unknown): string {
     return "Sua sessão expirou. Entre novamente para visualizar as informações.";
   }
   return "Não foi possível carregar as informações do dashboard agora.";
+}
+
+interface UpcomingProjectCardProps {
+  project: UpcomingProject;
+  onClick: (project: UpcomingProject) => void;
+}
+
+function UpcomingProjectCard({ project, onClick }: UpcomingProjectCardProps) {
+  return (
+    <Card
+      role="button"
+      tabIndex={0}
+      aria-label={`Visualizar projeto ${project.title} de ${project.clientName}`}
+      onClick={() => onClick(project)}
+      onKeyDown={(event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          onClick(project);
+        }
+      }}
+      className="group cursor-pointer rounded-2xl border border-surface-container bg-surface-container-lowest p-4 shadow-level-1 ring-0 gap-0 transition hover:border-outline-variant/60 hover:shadow-level-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+    >
+      <div className="flex items-center justify-between gap-2">
+        <span className="text-[11px] font-bold uppercase tracking-wider text-primary">
+          {project.title}
+        </span>
+        <Badge
+          className={cn(
+            "rounded-full px-2.5 py-0.5 text-xs font-semibold whitespace-nowrap border-0 shadow-none hover:opacity-90",
+            getStatusBadgeClass(project.status)
+          )}
+        >
+          {getStatusLabel(project.status)}
+        </Badge>
+      </div>
+
+      <h3 className="mt-1 text-base font-bold text-on-surface">
+        {project.clientName}
+      </h3>
+
+      <div className="mt-2 flex items-center gap-1.5 text-xs text-on-surface-variant">
+        <Calendar className="size-3.5 text-outline shrink-0" />
+        <span>
+          {formatProjectDateTime(project.startAt)}
+          {project.notes ? ` (${project.notes})` : ""}
+        </span>
+      </div>
+
+      <div className="mt-3 flex items-center justify-between border-t border-surface-container/60 pt-2 text-xs">
+        <div className="flex items-center gap-1.5 text-on-surface-variant">
+          <MapPin className="size-3.5 text-outline shrink-0" />
+          <span className="truncate max-w-[220px]">
+            {project.local || "Local a combinar"}
+          </span>
+        </div>
+
+        {project.agreed_price !== null && project.agreed_price !== undefined ? (
+          <span className="text-sm font-bold text-on-surface">
+            {formatMoney(project.agreed_price)}
+          </span>
+        ) : (
+          <span className="text-xs text-primary font-medium group-hover:underline">
+            Ver detalhes
+          </span>
+        )}
+      </div>
+    </Card>
+  );
 }
 
 export default function Dashboard({
@@ -250,7 +319,6 @@ export default function Dashboard({
     [data]
   );
 
-  // Status counts
   const counts = useMemo(() => {
     const res = {
       all: upcomingProjects.length,
@@ -267,6 +335,26 @@ export default function Dashboard({
     });
     return res;
   }, [upcomingProjects]);
+
+  const filterOptions = useMemo<
+    { id: StatusFilter; label: string; count: number }[]
+  >(
+    () => [
+      { id: "all", label: "Todos", count: counts.all },
+      { id: "confirmed", label: "Confirmados", count: counts.confirmed },
+      { id: "in_progress", label: "Em Execução", count: counts.in_progress },
+      ...(counts.pending > 0
+        ? [
+            {
+              id: "pending" as const,
+              label: "Pendentes",
+              count: counts.pending,
+            },
+          ]
+        : []),
+    ],
+    [counts]
+  );
 
   const filteredProjects = useMemo(() => {
     if (statusFilter === "all") return upcomingProjects;
@@ -301,23 +389,14 @@ const financialSummary = {
   return (
     <main className="min-h-screen bg-surface text-on-surface">
       <section className="mx-auto w-full max-w-2xl px-5 pb-16 pt-8 sm:px-8">
-        <div className="flex items-start justify-between">
-          <div>
-            <h1 className="flex items-center gap-2 text-2xl font-bold tracking-tight text-on-surface">
-              <span>Olá, {firstName}!</span>
+        <div>
+          <h1 className="flex items-center gap-2 text-2xl font-bold tracking-tight text-on-surface">
+            <span>Olá, {firstName}!</span>
 
-            </h1>
-            <p className="mt-1 text-xs font-medium text-on-surface-variant">
-              Veja como está seu estúdio hoje • {periodLabel}
-            </p>
-          </div>
-          <div className="flex items-center gap-2">
-            <div
-              className="size-3.5 rounded-full bg-[#993100] ring-4 ring-[#993100]/20"
-              title="Estúdio Ativo"
-              aria-label="Status do estúdio"
-            />
-          </div>
+          </h1>
+          <p className="mt-1 text-xs font-medium text-on-surface-variant">
+            Veja como está seu estúdio hoje • {periodLabel}
+          </p>
         </div>
 
         {errorMessage && (
@@ -436,7 +515,6 @@ const financialSummary = {
           </div>
         </div>
 
-        {/* Section: Próximos Trabalhos */}
         <div className="mt-8">
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-bold text-on-surface">Próximos Trabalhos</h2>
@@ -449,64 +527,24 @@ const financialSummary = {
             </button>
           </div>
 
-          {/* Filter Pills */}
           <div className="mt-3 flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
-            <button
-              type="button"
-              onClick={() => setStatusFilter("all")}
-              className={cn(
-                "rounded-full px-4 py-1.5 text-xs font-semibold transition cursor-pointer whitespace-nowrap",
-                statusFilter === "all"
-                  ? "bg-primary text-white shadow-sm"
-                  : "border border-surface-container bg-surface-container-lowest text-on-surface-variant hover:bg-surface-container-low"
-              )}
-            >
-              Todos ({counts.all})
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setStatusFilter("confirmed")}
-              className={cn(
-                "rounded-full px-4 py-1.5 text-xs font-semibold transition cursor-pointer whitespace-nowrap",
-                statusFilter === "confirmed"
-                  ? "bg-primary text-white shadow-sm"
-                  : "border border-surface-container bg-surface-container-lowest text-on-surface-variant hover:bg-surface-container-low"
-              )}
-            >
-              Confirmados ({counts.confirmed})
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setStatusFilter("in_progress")}
-              className={cn(
-                "rounded-full px-4 py-1.5 text-xs font-semibold transition cursor-pointer whitespace-nowrap",
-                statusFilter === "in_progress"
-                  ? "bg-primary text-white shadow-sm"
-                  : "border border-surface-container bg-surface-container-lowest text-on-surface-variant hover:bg-surface-container-low"
-              )}
-            >
-              Em Execução ({counts.in_progress})
-            </button>
-
-            {counts.pending > 0 && (
+            {filterOptions.map(({ id, label, count }) => (
               <button
+                key={id}
                 type="button"
-                onClick={() => setStatusFilter("pending")}
+                onClick={() => setStatusFilter(id)}
                 className={cn(
                   "rounded-full px-4 py-1.5 text-xs font-semibold transition cursor-pointer whitespace-nowrap",
-                  statusFilter === "pending"
+                  statusFilter === id
                     ? "bg-primary text-white shadow-sm"
                     : "border border-surface-container bg-surface-container-lowest text-on-surface-variant hover:bg-surface-container-low"
                 )}
               >
-                Pendentes ({counts.pending})
+                {label} ({count})
               </button>
-            )}
+            ))}
           </div>
 
-          {/* Project List */}
           <div className="mt-4 space-y-3">
             {isLoading ? (
               <div className="flex flex-col items-center justify-center py-12 text-on-surface-variant">
@@ -514,7 +552,7 @@ const financialSummary = {
                 <p className="mt-3 text-xs font-medium">Carregando informações...</p>
               </div>
             ) : filteredProjects.length === 0 ? (
-              <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-surface-container bg-surface-container-lowest/50 py-10 px-4 text-center">
+              <Card className="flex flex-col items-center justify-center rounded-2xl border-dashed border-surface-container bg-surface-container-lowest/50 py-10 px-4 text-center ring-0 gap-0">
                 <p className="text-xs font-medium text-on-surface-variant">
                   {statusFilter === "all"
                     ? "Nenhum trabalho agendado para este período."
@@ -528,63 +566,14 @@ const financialSummary = {
                   <Plus className="size-3.5" />
                   <span>Novo Projeto</span>
                 </button>
-              </div>
+              </Card>
             ) : (
               filteredProjects.map((project) => (
-                <div
+                <UpcomingProjectCard
                   key={project.id}
-                  onClick={() => handleViewProject(project)}
-                  className="group rounded-2xl border border-surface-container bg-surface-container-lowest p-4 shadow-level-1 transition hover:shadow-level-2 hover:border-outline-variant/60 cursor-pointer"
-                >
-                  {/* Top Row: Type/Title uppercase & Status Badge */}
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="text-[11px] font-bold uppercase tracking-wider text-primary">
-                      {project.title}
-                    </span>
-                    <span
-                      className={cn(
-                        "rounded-full px-2.5 py-0.5 text-xs font-semibold whitespace-nowrap",
-                        getStatusBadgeClass(project.status)
-                      )}
-                    >
-                      {getStatusLabel(project.status)}
-                    </span>
-                  </div>
-
-                  {/* Client Name */}
-                  <h3 className="mt-1 text-base font-bold text-on-surface">
-                    {project.clientName}
-                  </h3>
-
-                  {/* Date & Time with optional detail */}
-                  <div className="mt-2 flex items-center gap-1.5 text-xs text-on-surface-variant">
-                    <Calendar className="size-3.5 text-outline shrink-0" />
-                    <span>
-                      {formatProjectDateTime(project.startAt)}
-                      {project.notes ? ` (${project.notes})` : ""}
-                    </span>
-                  </div>
-
-                  {/* Bottom Row: Location or Details on Left, Agreed Price on Right */}
-                  <div className="mt-3 flex items-center justify-between border-t border-surface-container/60 pt-2 text-xs">
-                    <div className="flex items-center gap-1.5 text-on-surface-variant">
-                      <MapPin className="size-3.5 text-outline shrink-0" />
-                      <span className="truncate max-w-[220px]">
-                        {project.local || "Local a combinar"}
-                      </span>
-                    </div>
-
-                    {project.agreed_price !== null && project.agreed_price !== undefined ? (
-                      <span className="text-sm font-bold text-on-surface">
-                        {formatMoney(project.agreed_price)}
-                      </span>
-                    ) : (
-                      <span className="text-xs text-primary font-medium group-hover:underline">
-                        Ver detalhes
-                      </span>
-                    )}
-                  </div>
-                </div>
+                  project={project}
+                  onClick={handleViewProject}
+                />
               ))
             )}
           </div>
