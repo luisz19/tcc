@@ -56,6 +56,9 @@ export class DashboardService {
           clientName: project.client?.name || 'Cliente não associado',
           startAt: project.startAt,
           status: project.status,
+          local: project.local,
+          notes: project.notes,
+          agreed_price: project.agreed_price,
         })),
       },
       clients: {

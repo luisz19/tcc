@@ -7,6 +7,9 @@ export interface ProjectSummaryItem {
   clientName: string;
   startAt: Date | null;
   status: ProjectStatus;
+  local?: string | null;
+  notes?: string | null;
+  agreed_price?: number | null;
 }
 
 export interface ProjectSummary {

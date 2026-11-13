@@ -4,7 +4,7 @@ import Register from './pages/Register'
 import Clients from './pages/Clients'
 import Projects from './pages/Projects'
 import Packages from './pages/Packages'
-import Home from './pages/Home'
+import Dashboard from './pages/Dashboard'
 import Financial from './pages/Financial'
 import FinancialForm from './pages/financials/FinancialForm'
 import ClientForm from './pages/clients/ClientForm'
@@ -119,7 +119,8 @@ function App() {
     <Routes>
       <Route element={<AuthenticatedLayout />}>
         <Route path="/" element={<Navigate to="/home" replace />} />
-        <Route path="/home" element={<Home />} />
+        <Route path="/home" element={<Dashboard />} />
+        <Route path="/dashboard" element={<Dashboard />} />
 
         <Route path="/projects" element={<Projects onOpenPackages={() => navigate('/projects/packages')} onCreateProject={() => navigate('/projects/new')} onViewProject={(project) => navigate(`/projects/${project.id}`, { state: { project } })} />} />
         <Route path="/projects/new" element={<ProjectForm onCancel={() => navigate('/projects')} onSaved={() => navigate('/projects')} />} />
