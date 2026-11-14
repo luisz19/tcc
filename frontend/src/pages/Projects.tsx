@@ -7,12 +7,10 @@ import {
   LoaderCircle,
   MapPin,
   Plus,
-  UserRound,
 } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
-import { useAuth } from "@/context/AuthContext";
 import { getClients } from "@/api/clients";
 import { getProjects } from "@/api/project";
 import type { Client } from "@/types/clients";
@@ -98,7 +96,6 @@ function Projects({
   onCreateProject,
   onViewProject,
 }: ProjectsProps) {
-  const { logout } = useAuth();
   const [projects, setProjects] = useState<Project[]>([]);
   const [clients, setClients] = useState<Client[]>([]);
   const [search, setSearch] = useState("");
@@ -165,11 +162,24 @@ function Projects({
               Seus projetos
             </h2>
           </div>
-          {!isLoading && !errorMessage && (
-            <p className="text-sm text-on-surface-variant">
-              {projects.length} {projects.length === 1 ? "projeto" : "projetos"}
-            </p>
-          )}
+          <div className="flex items-center gap-3">
+            {onOpenPackages && (
+              <button
+                className="grid size-9 place-items-center rounded-xl border border-surface-container bg-surface-container-lowest text-on-surface-variant transition hover:bg-surface-container-low focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 cursor-pointer"
+                type="button"
+                onClick={onOpenPackages}
+                aria-label="Abrir pacotes"
+                title="Abrir pacotes"
+              >
+                <FolderKanban className="size-4 text-primary" aria-hidden="true" />
+              </button>
+            )}
+            {!isLoading && !errorMessage && (
+              <p className="text-sm text-on-surface-variant">
+                {projects.length} {projects.length === 1 ? "projeto" : "projetos"}
+              </p>
+            )}
+          </div>
         </div>
 
         <div className="mb-4">

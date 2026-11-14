@@ -2,14 +2,13 @@ import { useEffect, useMemo, useState } from "react";
 import { isAxiosError } from "axios";
 import {
   ArrowDown,
+  Calendar,
   Edit3,
   LoaderCircle,
   Plus,
   Trash2,
-  UserRound,
   WalletCards,
 } from "lucide-react";
-import { useAuth } from "@/context/AuthContext";
 import {
   deleteFinancial,
   getFinancialMonthly,
@@ -21,7 +20,7 @@ import type { Project } from "@/types/projects";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import {
   Dialog,
   DialogClose,
@@ -31,6 +30,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { cn } from "@/lib/utils";
 import "../App.css";
 
 interface FinancialProps {
@@ -42,6 +42,12 @@ const statusLabels: Record<FinancialStatus, string> = {
   pending: "Pendente",
   paid: "Pago",
   canceled: "Cancelado",
+};
+
+const financialStatusBadgeClasses: Record<FinancialStatus, string> = {
+  paid: "bg-[#dcfce7] text-[#15803d]",
+  pending: "bg-[#fff0d4] text-[#8a5b00]",
+  canceled: "bg-[#fee2e2] text-[#b91c1c]",
 };
 
 function formatMoney(value: number | string) {
@@ -69,7 +75,6 @@ function getPeriodDates(period: Exclude<Period, "all">) {
 }
 
 function FinancialPage({ onCreateFinancial, onEditFinancial }: FinancialProps) {
-  const { logout } = useAuth();
   const [financials, setFinancials] = useState<Financial[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
   const [period, setPeriod] = useState<Period>("all");
@@ -155,37 +160,15 @@ function FinancialPage({ onCreateFinancial, onEditFinancial }: FinancialProps) {
 
   return (
     <main className="min-h-screen bg-surface text-on-surface">
-      <section className="mx-auto w-full max-w-2xl px-5 pb-28 pt-5 sm:px-8 sm:pt-8">
-        <div
-          className="mb-5 flex gap-2 overflow-x-auto pb-1"
-          role="group"
-          aria-label="Período financeiro"
-        >
-          {(
-            [
-              ["all", "Todo período"],
-              ["this_month", "Este mês"],
-              ["last_month", "Mês passado"],
-            ] as const
-          ).map(([value, label]) => (
-            <button
-              className={`shrink-0 rounded-xl px-4 py-2.5 text-sm font-medium ${
-                period === value
-                  ? "bg-primary-fixed text-on-primary-fixed"
-                  : "bg-surface-container text-on-surface-variant"
-              }`}
-              key={value}
-              type="button"
-              onClick={() => {
-                setIsLoading(true);
-                setPeriod(value);
-              }}
-              aria-pressed={period === value}
-            >
-              {label}
-            </button>
-          ))}
+      <section className="mx-auto w-full max-w-2xl px-5 pb-28 pt-6 sm:px-8 sm:pt-8">
+        <div className="mb-6 flex items-end justify-between gap-4">
+          <div>
+            <h2 className="text-2xl font-semibold leading-8 text-on-surface">
+              Suas finanças
+            </h2>
+          </div>
         </div>
+
         {isLoading && (
           <div
             className="flex min-h-64 items-center justify-center text-primary"
@@ -207,125 +190,186 @@ function FinancialPage({ onCreateFinancial, onEditFinancial }: FinancialProps) {
         )}
         {!isLoading && !errorMessage && (
           <>
-            <Card className="border-0 bg-gradient-to-br from-surface-container-lowest to-primary-fixed/30 shadow-level-1">
-              <CardContent className="p-5 sm:p-7">
-                <p className="text-xs font-bold uppercase tracking-label text-on-surface-variant">
-                  Total de receitas
-                </p>
-                <p className="mt-1 text-4xl font-semibold tracking-tight">
-                  {formatMoney(totalRevenue)}
-                </p>
-                <div className="mt-6 grid gap-3 sm:grid-cols-3">
-                  <div className="rounded-xl bg-surface-container-lowest p-4">
-                    <p className="text-xs font-bold uppercase tracking-label text-on-surface-variant">
-                      Recebido
-                    </p>
-                    <p className="mt-2 text-xl font-semibold text-primary">
-                      {formatMoney(summary.received)}
-                    </p>
-                  </div>
-                  <div className="rounded-xl bg-surface-container-lowest p-4">
-                    <p className="text-xs font-bold uppercase tracking-label text-on-surface-variant">
-                      Pendente
-                    </p>
-                    <p className="mt-2 text-xl font-semibold">
-                      {formatMoney(summary.pending)}
-                    </p>
-                  </div>
-                  <div className="rounded-xl bg-surface-container-lowest p-4">
-                    <p className="text-xs font-bold uppercase tracking-label text-on-surface-variant">
-                      Despesas
-                    </p>
-                    <p className="mt-2 text-xl font-semibold text-tertiary">
-                      {formatMoney(summary.expenses)}
-                    </p>
-                  </div>
+            <Card className="rounded-2xl border border-surface-container bg-surface-container-lowest p-5 shadow-level-1 ring-0 gap-0 my-4">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-primary">
+                Resumo Geral
+              </span>
+              <p className="mt-1 text-xs font-medium text-on-surface-variant">
+                Total de receitas
+              </p>
+              <p className="mt-1 text-3xl font-bold tracking-tight text-on-surface">
+                {formatMoney(totalRevenue)}
+              </p>
+              <div className="mt-5 grid grid-cols-3 gap-3">
+                <div className="rounded-xl border border-surface-container bg-surface-container-low/50 p-3">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant">
+                    Recebido
+                  </span>
+                  <p className="mt-1 text-base font-bold text-primary">
+                    {formatMoney(summary.received)}
+                  </p>
                 </div>
-              </CardContent>
+                <div className="rounded-xl border border-surface-container bg-surface-container-low/50 p-3">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant">
+                    Pendente
+                  </span>
+                  <p className="mt-1 text-base font-bold text-on-surface">
+                    {formatMoney(summary.pending)}
+                  </p>
+                </div>
+                <div className="rounded-xl border border-surface-container bg-surface-container-low/50 p-3">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant">
+                    Despesas
+                  </span>
+                  <p className="mt-1 text-base font-bold text-tertiary">
+                    {formatMoney(summary.expenses)}
+                  </p>
+                </div>
+              </div>
             </Card>
-            <div className="mb-3 mt-8 flex items-center justify-between">
-              <h2 className="text-lg font-semibold">Lançamentos recentes</h2>
-              <span className="text-sm text-on-surface-variant">
-                {financials.length} registros
+
+            <div
+              className="mb-6 flex gap-2 overflow-x-auto pb-1 scrollbar-none"
+              role="group"
+              aria-label="Período financeiro"
+            >
+              {(
+                [
+                  ["all", "Todo período"],
+                  ["this_month", "Este mês"],
+                  ["last_month", "Mês passado"],
+                ] as const
+              ).map(([value, label]) => (
+                <button
+                  className={cn(
+                    "rounded-full px-4 py-1.5 text-xs font-semibold transition cursor-pointer whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30",
+                    period === value
+                      ? "bg-primary text-white shadow-sm"
+                      : "border border-surface-container bg-surface-container-lowest text-on-surface-variant hover:bg-surface-container-low"
+                  )}
+                  key={value}
+                  type="button"
+                  onClick={() => {
+                    setIsLoading(true);
+                    setPeriod(value);
+                  }}
+                  aria-pressed={period === value}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+
+            <div className="mb-4 flex items-center justify-between">
+              <h2 className="text-lg font-bold text-on-surface">Lançamentos recentes</h2>
+              <span className="text-xs font-medium text-on-surface-variant">
+                {financials.length} {financials.length === 1 ? "registro" : "registros"}
               </span>
             </div>
             {financials.length === 0 ? (
-              <div className="flex min-h-48 flex-col items-center justify-center rounded-xl border border-dashed border-outline-variant px-5 text-center">
+              <Card className="flex min-h-64 flex-col items-center justify-center rounded-2xl border-dashed border-surface-container bg-surface-container-lowest/50 px-6 py-10 text-center ring-0 gap-0">
                 <WalletCards
                   className="mb-3 size-7 text-outline"
                   aria-hidden="true"
                 />
-                <p className="text-sm text-on-surface-variant">
-                  Nenhum lançamento neste período.
+                <h3 className="text-base font-semibold text-on-surface">
+                  Nenhum lançamento encontrado
+                </h3>
+                <p className="mt-1 max-w-sm text-sm leading-6 text-on-surface-variant">
+                  Não há movimentações financeiras registradas para este período.
                 </p>
-              </div>
+              </Card>
             ) : (
               <div className="grid gap-3">
                 {financials.map((financial) => (
                   <Card
-                    className="border-0 bg-surface-container-lowest shadow-level-1"
                     key={financial.id}
+                    className="group rounded-2xl border border-surface-container bg-surface-container-lowest p-4 shadow-level-1 ring-0 gap-0 transition hover:border-outline-variant/60 hover:shadow-level-2"
                   >
-                    <CardContent className="flex items-center gap-3 p-4">
-                      <div
-                        className={`grid size-10 shrink-0 place-items-center rounded-full ${
-                          financial.type === "income"
-                            ? "bg-primary-fixed text-primary"
-                            : "bg-tertiary-fixed text-tertiary"
-                        }`}
+             
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-1.5">
+                        <div
+                          className={cn(
+                            "grid size-6 place-items-center rounded-lg",
+                            financial.type === "income"
+                              ? "bg-primary-fixed/60 text-primary"
+                              : "bg-[#fee2e2] text-[#b91c1c]"
+                          )}
+                        >
+                          <ArrowDown
+                            className={cn(
+                              "size-3.5 stroke-[2.5]",
+                              financial.type === "income" ? "-rotate-180" : ""
+                            )}
+                            aria-hidden="true"
+                          />
+                        </div>
+                        <span className="text-[11px] font-bold uppercase tracking-wider text-primary">
+                          {financial.type === "income" ? "RECEITA" : "DESPESA"}
+                        </span>
+                      </div>
+                      <Badge
+                        className={cn(
+                          "rounded-full px-2.5 py-0.5 text-xs font-semibold whitespace-nowrap border-0 shadow-none hover:opacity-90",
+                          financialStatusBadgeClasses[financial.status]
+                        )}
                       >
-                        <ArrowDown
-                          className={`size-4 ${
-                            financial.type === "income" ? "-rotate-180" : ""
-                          }`}
-                          aria-hidden="true"
-                        />
+                        {statusLabels[financial.status]}
+                      </Badge>
+                    </div>
+
+               
+                    <div className="mt-2 flex items-baseline justify-between gap-3">
+                      <h3 className="truncate text-base font-bold text-on-surface">
+                        {financial.description ||
+                          (financial.type === "income" ? "Receita" : "Despesa")}
+                      </h3>
+                      <span
+                        className={cn(
+                          "shrink-0 text-base font-bold tracking-tight",
+                          financial.type === "income"
+                            ? "text-primary"
+                            : "text-[#b91c1c]"
+                        )}
+                      >
+                        {financial.type === "income" ? "+" : "-"}
+                        {formatMoney(financial.value)}
+                      </span>
+                    </div>
+
+                    <p className="mt-1 truncate text-xs text-on-surface-variant">
+                      {projectNames.get(financial.projectId) ??
+                        "Sem projeto associado"}
+                    </p>
+
+                    <div className="mt-3 flex items-center justify-between border-t border-surface-container/60 pt-2 text-xs">
+                      <div className="flex items-center gap-1.5 text-on-surface-variant">
+                        <Calendar className="size-3.5 text-outline shrink-0" />
+                        <span>{formatDate(financial.date)}</span>
                       </div>
-                      <div className="min-w-0 flex-1">
-                        <h3 className="truncate text-sm font-medium">
-                          {financial.description ||
-                            (financial.type === "income"
-                              ? "Receita"
-                              : "Despesa")}
-                        </h3>
-                        <p className="mt-1 truncate text-xs text-on-surface-variant">
-                          {projectNames.get(financial.projectId) ??
-                            "Projeto não encontrado"}{" "}
-                          <span aria-hidden="true">•</span>{" "}
-                          {formatDate(financial.date)}
-                        </p>
-                      </div>
-                      <div className="shrink-0 text-right">
-                        <p className="text-sm font-semibold">
-                          {financial.type === "income" ? "+" : "-"}
-                          {formatMoney(financial.value)}
-                        </p>
-                        <Badge className="mt-1 rounded-full text-[10px]">
-                          {statusLabels[financial.status]}
-                        </Badge>
-                      </div>
-                      <div className="flex shrink-0 gap-1">
-                        <Button
-                          variant="ghost"
-                          size="icon"
+
+                      <div className="flex items-center gap-1">
+                        <button
                           type="button"
                           onClick={() => onEditFinancial(financial)}
+                          className="grid size-7 place-items-center rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition cursor-pointer"
                           aria-label="Editar lançamento"
+                          title="Editar lançamento"
                         >
-                          <Edit3 aria-hidden="true" />
-                        </Button>
-                        <Button
-                          className="text-error hover:bg-error-container"
-                          variant="ghost"
-                          size="icon"
+                          <Edit3 className="size-3.5" />
+                        </button>
+                        <button
                           type="button"
                           onClick={() => setDeletingFinancial(financial)}
+                          className="grid size-7 place-items-center rounded-lg text-error hover:bg-error-container transition cursor-pointer"
                           aria-label="Excluir lançamento"
+                          title="Excluir lançamento"
                         >
-                          <Trash2 aria-hidden="true" />
-                        </Button>
+                          <Trash2 className="size-3.5" />
+                        </button>
                       </div>
-                    </CardContent>
+                    </div>
                   </Card>
                 ))}
               </div>
@@ -334,10 +378,11 @@ function FinancialPage({ onCreateFinancial, onEditFinancial }: FinancialProps) {
         )}
       </section>
       <button
-        className="fixed bottom-20 right-5 z-20 grid size-12 place-items-center rounded-lg bg-primary text-on-primary shadow-level-2 sm:bottom-24 sm:right-8"
+        className="fixed bottom-6 right-5 z-20 grid size-12 place-items-center rounded-lg bg-primary text-on-primary shadow-level-2 transition-transform hover:-translate-y-0.5 hover:bg-primary-container focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 sm:bottom-8 sm:right-8 cursor-pointer"
         type="button"
         onClick={onCreateFinancial}
         aria-label="Adicionar lançamento"
+        title="Adicionar lançamento"
       >
         <Plus className="size-6" aria-hidden="true" />
       </button>
