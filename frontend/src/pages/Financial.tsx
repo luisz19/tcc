@@ -378,7 +378,7 @@ function FinancialPage({ onCreateFinancial, onEditFinancial }: FinancialProps) {
         )}
       </section>
       <button
-        className="fixed bottom-6 right-5 z-20 grid size-12 place-items-center rounded-lg bg-primary text-on-primary shadow-level-2 transition-transform hover:-translate-y-0.5 hover:bg-primary-container focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 sm:bottom-8 sm:right-8 cursor-pointer"
+        className="fixed bottom-[calc(max(0.75rem,env(safe-area-inset-bottom))+4.75rem)] right-4 z-40 grid size-12 place-items-center rounded-2xl bg-primary text-white shadow-level-2 transition-all hover:-translate-y-0.5 hover:bg-primary/90 active:scale-95 active:translate-y-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 sm:bottom-24 sm:right-8 cursor-pointer"
         type="button"
         onClick={onCreateFinancial}
         aria-label="Adicionar lançamento"

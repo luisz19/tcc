@@ -3,7 +3,7 @@ import BottomNavigation from './BottomNavigation'
 
 function AuthenticatedLayout() {
 	return (
-		<div className="min-h-screen pb-16">
+		<div className="min-h-screen pb-24 sm:pb-28">
 			<Outlet />
 			<BottomNavigation />
 		</div>
