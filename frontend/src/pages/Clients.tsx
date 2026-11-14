@@ -86,24 +86,7 @@ function Clients({ onCreateClient, onViewClient }: ClientsProps) {
 
   return (
     <main className="min-h-screen bg-surface text-on-surface">
-      <header className="sticky top-0 z-20 border-b border-surface-container bg-surface/95 backdrop-blur-sm">
-        <div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between px-5 sm:px-8">
-          <h1 className="text-xl font-semibold leading-7 text-on-surface">
-            Clientes
-          </h1>
-          <button
-            className="grid size-10 place-items-center rounded-full bg-primary text-on-primary transition-colors hover:bg-primary-container focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
-            type="button"
-            onClick={logout}
-            aria-label="Sair da conta"
-            title="Sair da conta"
-          >
-            <UserRound className="size-[18px]" aria-hidden="true" />
-          </button>
-        </div>
-      </header>
-
-      <section className="mx-auto w-full max-w-6xl px-5 pb-28 pt-6 sm:px-8 sm:pt-8">
+      <section className="mx-auto w-full max-w-2xl px-5 pb-28 pt-6 sm:px-8 sm:pt-8">
         <div className="mb-6 flex items-end justify-between gap-4">
           <div>
             <p className="mb-1 text-xs font-bold uppercase tracking-label text-primary">
@@ -224,7 +207,7 @@ function Clients({ onCreateClient, onViewClient }: ClientsProps) {
       </section>
 
       <button
-        className="fixed bottom-6 right-5 z-20 grid size-12 place-items-center rounded-lg bg-primary text-on-primary shadow-level-2 transition-transform hover:-translate-y-0.5 hover:bg-primary-container focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 sm:bottom-8 sm:right-8"
+        className="fixed bottom-6  z-99 grid size-12 place-items-center rounded-lg bg-primary text-on-primary shadow-level-2 transition-transform hover:-translate-y-0.5 hover:bg-primary-container focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 sm:bottom-8 sm:right-8"
         type="button"
         onClick={onCreateClient}
         aria-label="Adicionar cliente"

@@ -155,20 +155,7 @@ function FinancialPage({ onCreateFinancial, onEditFinancial }: FinancialProps) {
 
   return (
     <main className="min-h-screen bg-surface text-on-surface">
-      <header className="sticky top-0 z-20 border-b border-surface-container bg-surface/95">
-        <div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between px-5 sm:px-8">
-          <h1 className="text-xl font-semibold">Financeiro</h1>
-          <button
-            className="grid size-10 place-items-center rounded-full bg-primary text-on-primary"
-            type="button"
-            onClick={logout}
-            aria-label="Sair da conta"
-          >
-            <UserRound className="size-[18px]" aria-hidden="true" />
-          </button>
-        </div>
-      </header>
-      <section className="mx-auto w-full max-w-4xl px-5 pb-28 pt-5 sm:px-8 sm:pt-8">
+      <section className="mx-auto w-full max-w-2xl px-5 pb-28 pt-5 sm:px-8 sm:pt-8">
         <div
           className="mb-5 flex gap-2 overflow-x-auto pb-1"
           role="group"

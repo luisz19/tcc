@@ -485,7 +485,7 @@ const financialSummary = {
             </div>
           </div>
 
-          <div className="mt-4 flex gap-3.5 overflow-x-auto pb-2 scrollbar-none sm:gap-26 sm:grid sm:grid-cols-3">
+          <div className="mt-4 flex gap-3.5 overflow-x-auto pb-2 scrollbar-none sm:gap-50 sm:grid sm:grid-cols-3">
             {Object.values(financialSummary).map((item) => (
               <Card className="min-w-[260px] h-[100px]  flex-row p-5 " key={item.name}>
                 <div className="flex items-center justify-between">
