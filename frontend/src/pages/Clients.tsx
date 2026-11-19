@@ -3,14 +3,14 @@ import { isAxiosError } from "axios";
 import {
   ChevronRight,
   LoaderCircle,
+  Mail,
+  MapPin,
+  Phone,
   Plus,
   Search,
-  UserRound,
 } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
-import { useAuth } from "@/context/AuthContext";
+import { Card } from "@/components/ui/card";
 import { getClients } from "@/api/clients";
 import type { Client } from "@/types/clients";
 import SearchInput from "@/components/common/SearchInput";
@@ -21,21 +21,11 @@ interface ClientsProps {
   onViewClient: (client: Client) => void;
 }
 
-function getInitials(name: string) {
-  return name
-    .split(" ")
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((part) => part[0]?.toUpperCase())
-    .join("");
-}
-
 function formatPhone(phone: string) {
   return phone || "Telefone não informado";
 }
 
 function Clients({ onCreateClient, onViewClient }: ClientsProps) {
-  const { logout } = useAuth();
   const [clients, setClients] = useState<Client[]>([]);
   const [search, setSearch] = useState("");
   const [isLoading, setIsLoading] = useState(true);
@@ -86,24 +76,7 @@ function Clients({ onCreateClient, onViewClient }: ClientsProps) {
 
   return (
     <main className="min-h-screen bg-surface text-on-surface">
-      <header className="sticky top-0 z-20 border-b border-surface-container bg-surface/95 backdrop-blur-sm">
-        <div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between px-5 sm:px-8">
-          <h1 className="text-xl font-semibold leading-7 text-on-surface">
-            Clientes
-          </h1>
-          <button
-            className="grid size-10 place-items-center rounded-full bg-primary text-on-primary transition-colors hover:bg-primary-container focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
-            type="button"
-            onClick={logout}
-            aria-label="Sair da conta"
-            title="Sair da conta"
-          >
-            <UserRound className="size-[18px]" aria-hidden="true" />
-          </button>
-        </div>
-      </header>
-
-      <section className="mx-auto w-full max-w-6xl px-5 pb-28 pt-6 sm:px-8 sm:pt-8">
+      <section className="mx-auto w-full max-w-2xl px-5 pb-28 pt-6 sm:px-8 sm:pt-8">
         <div className="mb-6 flex items-end justify-between gap-4">
           <div>
             <p className="mb-1 text-xs font-bold uppercase tracking-label text-primary">
@@ -152,7 +125,7 @@ function Clients({ onCreateClient, onViewClient }: ClientsProps) {
         )}
 
         {!isLoading && !errorMessage && filteredClients.length === 0 && (
-          <div className="flex min-h-64 flex-col items-center justify-center rounded-xl border border-dashed border-outline-variant px-6 text-center">
+          <Card className="flex min-h-64 flex-col items-center justify-center rounded-2xl border-dashed border-surface-container bg-surface-container-lowest/50 px-6 py-10 text-center ring-0 gap-0">
             <Search className="mb-3 size-7 text-outline" aria-hidden="true" />
             <h3 className="text-base font-semibold text-on-surface">
               {clients.length
@@ -164,14 +137,14 @@ function Clients({ onCreateClient, onViewClient }: ClientsProps) {
                 ? "Tente buscar por outro nome, e-mail ou telefone."
                 : "Seus clientes aparecerão aqui quando forem cadastrados."}
             </p>
-          </div>
+          </Card>
         )}
 
         {!isLoading && !errorMessage && filteredClients.length > 0 && (
           <div className="grid gap-3" aria-label="Lista de clientes">
             {filteredClients.map((client) => (
               <Card
-                className="cursor-pointer border-0 bg-surface-container-lowest shadow-level-1 transition-shadow hover:shadow-level-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
+                className="group cursor-pointer rounded-2xl border border-surface-container bg-surface-container-lowest p-4 shadow-level-1 ring-0 gap-0 transition hover:border-outline-variant/60 hover:shadow-level-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
                 key={client.id}
                 onClick={() => onViewClient(client)}
                 onKeyDown={(event) => {
@@ -182,41 +155,39 @@ function Clients({ onCreateClient, onViewClient }: ClientsProps) {
                 }}
                 tabIndex={0}
                 role="button"
-                aria-label={`Editar cliente ${client.name}`}
+                aria-label={`Visualizar cliente ${client.name}`}
               >
-                <CardContent className="flex min-h-24 items-center gap-3 p-4">
-                  <div
-                    className="grid size-12 shrink-0 place-items-center rounded-lg bg-primary-fixed text-sm font-semibold text-on-primary-fixed"
-                    aria-hidden="true"
-                  >
-                    {getInitials(client.name)}
+                <h3 className=" text-base font-bold text-on-surface">
+                  {client.name}
+                </h3>
+                <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-on-surface-variant">
+                  <div className="flex items-center gap-1.5">
+                    <Phone className="size-3.5 text-outline shrink-0" />
+                    <span>{formatPhone(client.phone)}</span>
                   </div>
-                  <div className="min-w-0 flex-1">
-                    <h3 className="truncate text-sm font-medium text-on-surface">
-                      {client.name}
-                    </h3>
-                    <p className="mt-1 truncate text-xs text-on-surface-variant">
-                      {formatPhone(client.phone)}
-                    </p>
-                    {client.email && (
-                      <p className="truncate text-xs text-on-surface-variant">
+                  {client.email && (
+                    <div className="flex items-center gap-1.5">
+                      <Mail className="size-3.5 text-outline shrink-0" />
+                      <span className="truncate max-w-[220px]">
                         {client.email}
-                      </p>
-                    )}
+                      </span>
+                    </div>
+                  )}
+                </div>
+
+                <div className="mt-3 flex items-center justify-between border-t border-surface-container/60 pt-2 text-xs">
+                  <div className="flex items-center gap-1.5 text-on-surface-variant">
+                    <MapPin className="size-3.5 text-outline shrink-0" />
+                    <span className="truncate max-w-[220px]">
+                      {client.address || "Endereço não informado"}
+                    </span>
                   </div>
-                  <div className="hidden shrink-0 text-right sm:block">
-                    <p className="text-[10px] font-bold uppercase tracking-label text-on-surface-variant">
-                      Cadastro
-                    </p>
-                    <Badge className="mt-1 rounded-full bg-primary-fixed text-on-primary-fixed hover:bg-primary-fixed">
-                      {client.personType === "company" ? "Empresa" : "Cliente"}
-                    </Badge>
-                  </div>
-                  <ChevronRight
-                    className="size-5 shrink-0 text-outline"
-                    aria-hidden="true"
-                  />
-                </CardContent>
+
+                  <span className="text-xs text-primary font-medium group-hover:underline flex items-center gap-0.5">
+                    Ver detalhes
+                    <ChevronRight className="size-3 text-primary" />
+                  </span>
+                </div>
               </Card>
             ))}
           </div>
@@ -224,7 +195,7 @@ function Clients({ onCreateClient, onViewClient }: ClientsProps) {
       </section>
 
       <button
-        className="fixed bottom-6 right-5 z-20 grid size-12 place-items-center rounded-lg bg-primary text-on-primary shadow-level-2 transition-transform hover:-translate-y-0.5 hover:bg-primary-container focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 sm:bottom-8 sm:right-8"
+        className="fixed bottom-[calc(max(0.75rem,env(safe-area-inset-bottom))+4.75rem)] right-4 z-40 grid size-12 place-items-center rounded-2xl bg-primary text-white shadow-level-2 transition-all hover:-translate-y-0.5 hover:bg-primary/90 active:scale-95 active:translate-y-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 sm:bottom-24 sm:right-8 cursor-pointer"
         type="button"
         onClick={onCreateClient}
         aria-label="Adicionar cliente"

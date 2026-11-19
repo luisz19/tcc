@@ -1,18 +1,16 @@
 import { useEffect, useMemo, useState } from "react";
 import { isAxiosError } from "axios";
 import {
+  Calendar,
   CalendarDays,
-  CircleDollarSign,
   FolderKanban,
   LoaderCircle,
   MapPin,
   Plus,
-  UserRound,
 } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
-import { useAuth } from "@/context/AuthContext";
+import { Card } from "@/components/ui/card";
 import { getClients } from "@/api/clients";
 import { getProjects } from "@/api/project";
 import type { Client } from "@/types/clients";
@@ -22,6 +20,7 @@ import {
   type ProjectStatus,
 } from "@/types/projects";
 import SearchInput from "@/components/common/SearchInput";
+import { cn } from "@/lib/utils";
 import "../App.css";
 
 interface ProjectsProps {
@@ -40,35 +39,50 @@ const statusLabels: Record<ProjectStatus, string> = {
   canceled: "Cancelado",
 };
 
-const statusClasses: Record<ProjectStatus, string> = {
-  pending: "bg-surface-container text-on-surface-variant",
-  confirmed: "bg-primary-fixed text-on-primary-fixed",
-  in_progress: "bg-primary-fixed text-on-primary-fixed",
-  completed: "bg-surface-container-high text-on-surface-variant",
-  canceled: "bg-error-container text-on-error-container",
+const statusBadgeClasses: Record<ProjectStatus, string> = {
+  confirmed: "bg-[#dde1ff] text-[#0040e0]",
+  in_progress: "bg-[#e7e8e9] text-[#434656]",
+  pending: "bg-[#fff0d4] text-[#8a5b00]",
+  completed: "bg-[#dcfce7] text-[#15803d]",
+  canceled: "bg-[#fee2e2] text-[#b91c1c]",
 };
 
-function formatSchedule(startAt: string | null, endAt: string | null) {
-  if (!startAt || !endAt) {
-    return "Período não informado";
-  }
+const MONTH_SHORT_NAMES = [
+  "Jan",
+  "Fev",
+  "Mar",
+  "Abr",
+  "Mai",
+  "Jun",
+  "Jul",
+  "Ago",
+  "Set",
+  "Out",
+  "Nov",
+  "Dez",
+];
 
-  const formatter = new Intl.DateTimeFormat("pt-BR", {
-    dateStyle: "short",
-    timeStyle: "short",
-  });
-  return `${formatter.format(new Date(startAt))} - ${formatter.format(new Date(endAt))}`;
-}
-
-function formatPrice(price: number | string | null) {
-  if (price === null || price === "") {
-    return "Valor não informado";
-  }
-
+function formatMoney(value: number | string | null | undefined): string {
+  const num = Number(value);
+  if (isNaN(num)) return "R$ 0,00";
   return new Intl.NumberFormat("pt-BR", {
     style: "currency",
     currency: "BRL",
-  }).format(Number(price));
+  }).format(num);
+}
+
+function formatProjectDateTime(startAt: string | null): string {
+  if (!startAt) return "Data a definir";
+  const date = new Date(startAt);
+  if (isNaN(date.getTime())) return "Data a definir";
+
+  const day = String(date.getDate()).padStart(2, "0");
+  const monthStr = MONTH_SHORT_NAMES[date.getMonth()];
+  const hours = String(date.getHours()).padStart(2, "0");
+  const minutes = String(date.getMinutes()).padStart(2, "0");
+
+  const hasTime = date.getHours() !== 0 || date.getMinutes() !== 0;
+  return hasTime ? `${day}/${monthStr} • ${hours}:${minutes}` : `${day}/${monthStr}`;
 }
 
 function getErrorMessage(error: unknown) {
@@ -82,7 +96,6 @@ function Projects({
   onCreateProject,
   onViewProject,
 }: ProjectsProps) {
-  const { logout } = useAuth();
   const [projects, setProjects] = useState<Project[]>([]);
   const [clients, setClients] = useState<Client[]>([]);
   const [search, setSearch] = useState("");
@@ -139,35 +152,7 @@ function Projects({
 
   return (
     <main className="min-h-screen bg-surface text-on-surface">
-      <header className="sticky top-0 z-20 border-b border-surface-container bg-surface/95 backdrop-blur-sm">
-        <div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between px-5 sm:px-8">
-          <h1 className="text-xl font-semibold leading-7 text-on-surface">
-            Projetos
-          </h1>
-          <div className="flex items-center gap-2">
-            <button
-              className="grid size-10 place-items-center rounded-full text-on-surface-variant transition-colors hover:bg-surface-container focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
-              type="button"
-              onClick={onOpenPackages}
-              aria-label="Abrir pacotes"
-              title="Abrir pacotes"
-            >
-              <FolderKanban className="size-[18px]" aria-hidden="true" />
-            </button>
-            <button
-              className="grid size-10 place-items-center rounded-full bg-primary text-on-primary transition-colors hover:bg-primary-container focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
-              type="button"
-              onClick={logout}
-              aria-label="Sair da conta"
-              title="Sair da conta"
-            >
-              <UserRound className="size-[18px]" aria-hidden="true" />
-            </button>
-          </div>
-        </div>
-      </header>
-
-      <section className="mx-auto w-full max-w-6xl px-5 pb-28 pt-6 sm:px-8 sm:pt-8">
+      <section className="mx-auto w-full max-w-2xl px-5 pb-28 pt-6 sm:px-8 sm:pt-8">
         <div className="mb-6 flex items-end justify-between gap-4">
           <div>
             <p className="mb-1 text-xs font-bold uppercase tracking-label text-primary">
@@ -177,11 +162,24 @@ function Projects({
               Seus projetos
             </h2>
           </div>
-          {!isLoading && !errorMessage && (
-            <p className="text-sm text-on-surface-variant">
-              {projects.length} {projects.length === 1 ? "projeto" : "projetos"}
-            </p>
-          )}
+          <div className="flex items-center gap-3">
+            {onOpenPackages && (
+              <button
+                className="grid size-9 place-items-center rounded-xl border border-surface-container bg-surface-container-lowest text-on-surface-variant transition hover:bg-surface-container-low focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 cursor-pointer"
+                type="button"
+                onClick={onOpenPackages}
+                aria-label="Abrir pacotes"
+                title="Abrir pacotes"
+              >
+                <FolderKanban className="size-4 text-primary" aria-hidden="true" />
+              </button>
+            )}
+            {!isLoading && !errorMessage && (
+              <p className="text-sm text-on-surface-variant">
+                {projects.length} {projects.length === 1 ? "projeto" : "projetos"}
+              </p>
+            )}
+          </div>
         </div>
 
         <div className="mb-4">
@@ -194,16 +192,17 @@ function Projects({
         </div>
 
         <div
-          className="mb-6 flex gap-2 overflow-x-auto pb-1"
+          className="mb-6 flex gap-2 overflow-x-auto pb-1 scrollbar-none"
           aria-label="Filtrar projetos por status"
         >
           {(["all", ...projectStatuses] as StatusFilter[]).map((status) => (
             <button
-              className={`shrink-0 rounded-full px-4 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 ${
+              className={cn(
+                "rounded-full px-4 py-1.5 text-xs font-semibold transition cursor-pointer whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30",
                 statusFilter === status
-                  ? "bg-primary text-on-primary"
-                  : "bg-surface-container text-on-surface-variant hover:bg-surface-container-high"
-              }`}
+                  ? "bg-primary text-white shadow-sm"
+                  : "border border-surface-container bg-surface-container-lowest text-on-surface-variant hover:bg-surface-container-low"
+              )}
               key={status}
               type="button"
               onClick={() => setStatusFilter(status)}
@@ -237,7 +236,7 @@ function Projects({
         )}
 
         {!isLoading && !errorMessage && filteredProjects.length === 0 && (
-          <div className="flex min-h-64 flex-col items-center justify-center rounded-xl border border-dashed border-outline-variant px-6 text-center">
+          <Card className="flex min-h-64 flex-col items-center justify-center rounded-2xl border-dashed border-surface-container bg-surface-container-lowest/50 px-6 py-10 text-center ring-0 gap-0">
             <CalendarDays
               className="mb-3 size-7 text-outline"
               aria-hidden="true"
@@ -252,14 +251,14 @@ function Projects({
                 ? "Tente buscar por outro título, cliente ou local."
                 : "Seus projetos aparecerão aqui quando forem cadastrados."}
             </p>
-          </div>
+          </Card>
         )}
 
         {!isLoading && !errorMessage && filteredProjects.length > 0 && (
           <div className="grid gap-3" aria-label="Lista de projetos">
             {filteredProjects.map((project) => (
               <Card
-                className="cursor-pointer border-0 bg-surface-container-lowest shadow-level-1 transition-shadow hover:shadow-level-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
+                className="group cursor-pointer rounded-2xl border border-surface-container bg-surface-container-lowest p-4 shadow-level-1 ring-0 gap-0 transition hover:border-outline-variant/60 hover:shadow-level-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
                 key={project.id}
                 onClick={() => onViewProject(project)}
                 onKeyDown={(event) => {
@@ -272,50 +271,52 @@ function Projects({
                 tabIndex={0}
                 aria-label={`Visualizar projeto ${project.title}`}
               >
-                <CardContent className="grid gap-4 p-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
-                  <div className="min-w-0">
-                    <div className="flex flex-wrap items-start justify-between gap-3">
-                      <h3 className="text-base font-semibold text-on-surface">
-                        {project.title}
-                      </h3>
-                      <Badge
-                        className={`rounded-full hover:opacity-90 ${
-                          statusClasses[project.status]
-                        }`}
-                      >
-                        {statusLabels[project.status]}
-                      </Badge>
-                    </div>
-                    <p className="mt-1 text-sm text-on-surface-variant">
-                      {clientNames.get(project.clientId) ??
-                        "Cliente não encontrado"}
-                    </p>
-                    <div className="mt-4 flex flex-wrap gap-x-5 gap-y-2 text-xs text-on-surface-variant">
-                      <span className="inline-flex items-center gap-1.5">
-                        <CalendarDays className="size-3.5" aria-hidden="true" />
-                        {formatSchedule(project.startAt, project.endAt)}
-                      </span>
-                      {project.local && (
-                        <span className="inline-flex items-center gap-1.5">
-                          <MapPin className="size-3.5" aria-hidden="true" />
-                          {project.local}
-                        </span>
-                      )}
-                      <span className="inline-flex items-center gap-1.5">
-                        <CircleDollarSign
-                          className="size-3.5"
-                          aria-hidden="true"
-                        />
-                        {formatPrice(project.agreed_price)}
-                      </span>
-                    </div>
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-primary">
+                    {project.title}
+                  </span>
+                  <Badge
+                    className={cn(
+                      "rounded-full px-2.5 py-0.5 text-xs font-semibold whitespace-nowrap border-0 shadow-none hover:opacity-90",
+                      statusBadgeClasses[project.status]
+                    )}
+                  >
+                    {statusLabels[project.status]}
+                  </Badge>
+                </div>
+
+                <h3 className="mt-1 text-base font-bold text-on-surface">
+                  {clientNames.get(project.clientId) ?? "Cliente não associado"}
+                </h3>
+
+                <div className="mt-2 flex items-center gap-1.5 text-xs text-on-surface-variant">
+                  <Calendar className="size-3.5 text-outline shrink-0" />
+                  <span>
+                    {formatProjectDateTime(project.startAt)}
+                    {project.notes ? ` (${project.notes})` : ""}
+                  </span>
+                </div>
+
+                <div className="mt-3 flex items-center justify-between border-t border-surface-container/60 pt-2 text-xs">
+                  <div className="flex items-center gap-1.5 text-on-surface-variant">
+                    <MapPin className="size-3.5 text-outline shrink-0" />
+                    <span className="truncate max-w-[220px]">
+                      {project.local || "Local a combinar"}
+                    </span>
                   </div>
-                  {project.notes && (
-                    <p className="border-t border-surface-container pt-3 text-sm leading-5 text-on-surface-variant sm:col-span-2">
-                      {project.notes}
-                    </p>
+
+                  {project.agreed_price !== null &&
+                  project.agreed_price !== undefined &&
+                  project.agreed_price !== "" ? (
+                    <span className="text-sm font-bold text-on-surface">
+                      {formatMoney(project.agreed_price)}
+                    </span>
+                  ) : (
+                    <span className="text-xs text-primary font-medium group-hover:underline">
+                      Ver detalhes
+                    </span>
                   )}
-                </CardContent>
+                </div>
               </Card>
             ))}
           </div>
@@ -323,7 +324,7 @@ function Projects({
       </section>
 
       <button
-        className="fixed bottom-6 right-5 z-20 grid size-12 place-items-center rounded-lg bg-primary text-on-primary shadow-level-2 transition-transform hover:-translate-y-0.5 hover:bg-primary-container focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 sm:bottom-8 sm:right-8"
+        className="fixed bottom-[calc(max(0.75rem,env(safe-area-inset-bottom))+4.75rem)] right-4 z-40 grid size-12 place-items-center rounded-2xl bg-primary text-white shadow-level-2 transition-all hover:-translate-y-0.5 hover:bg-primary/90 active:scale-95 active:translate-y-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 sm:bottom-24 sm:right-8 cursor-pointer"
         type="button"
         onClick={onCreateProject}
         aria-label="Adicionar projeto"
