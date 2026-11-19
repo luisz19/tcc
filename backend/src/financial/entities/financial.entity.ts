@@ -9,7 +9,7 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { FinancialStatus, FinancialType } from '../model/financial.model';
-import { Project } from 'src/project/entities/project.entity';
+import type { Project } from 'src/project/entities/project.entity';
 
 @Entity()
 export class Financial {
@@ -25,7 +25,9 @@ export class Financial {
   @ManyToOne(() => User, (user) => user.financial, { nullable: false })
   user: User;
 
-  @ManyToOne(() => Project, (project) => project.financial, { nullable: false })
+  @ManyToOne('Project', (project: Project) => project.financial, {
+    nullable: false,
+  })
   @JoinColumn({ name: 'projectId' })
   project: Project;
 

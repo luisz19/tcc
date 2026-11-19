@@ -319,9 +319,7 @@ describe('Projects (e2e)', () => {
 
   it('adicionar movimentação financeira a um projeto', async () => {
     const token = await authenticate();
-    const { id } = await createProject(token, {
-      title: 'Project with Financial Movement',
-    });
+    const { id } = await createProject(token);
 
     const movementPayload = {
       type: 'income',

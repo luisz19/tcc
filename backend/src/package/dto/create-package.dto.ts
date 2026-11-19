@@ -9,7 +9,7 @@ export class CreatePackageDto {
 
   @IsOptional()
   @IsString()
-  description: string;
+  description?: string;
 
   @IsNotEmpty()
   @IsNumber()
