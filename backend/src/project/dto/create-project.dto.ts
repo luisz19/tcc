@@ -52,5 +52,4 @@ export class CreateProjectDto {
   @IsOptional()
   @IsString()
   packageId?: string;
-
 }

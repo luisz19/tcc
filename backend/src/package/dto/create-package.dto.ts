@@ -1,4 +1,11 @@
-import { IsNotEmpty, IsNumber, IsOptional, IsPositive, IsString, Matches } from 'class-validator';
+import {
+  IsNotEmpty,
+  IsNumber,
+  IsOptional,
+  IsPositive,
+  IsString,
+  Matches,
+} from 'class-validator';
 
 export class CreatePackageDto {
   userId: string;
