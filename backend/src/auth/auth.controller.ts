@@ -2,7 +2,11 @@ import {
   Body,
   ClassSerializerInterceptor,
   Controller,
+  Delete,
   Get,
+  HttpCode,
+  HttpStatus,
+  Patch,
   Post,
   SerializeOptions,
   UseInterceptors,
@@ -10,6 +14,7 @@ import {
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { CreateUserDto } from '../user/dto/create-user.dto';
+import { UpdateUserDto } from '../user/dto/update-user.dto';
 import { User } from '../user/entities/user.entity';
 import { LoginDto } from './dto/login.dto';
 import { LoginResponse } from './login.response';
@@ -49,5 +54,21 @@ export class AuthController {
     const user = await this.userService.findOne(userId);
 
     return user;
+  }
+
+  @Patch('profile')
+  @UseGuards(AuthGuard)
+  async updateProfile(
+    @CurrentUser() userId: string,
+    @Body() updateUserDto: UpdateUserDto,
+  ): Promise<User> {
+    return this.userService.update(userId, updateUserDto);
+  }
+
+  @Delete('profile')
+  @UseGuards(AuthGuard)
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async deleteProfile(@CurrentUser() userId: string): Promise<void> {
+    return this.userService.deleteUser(userId);
   }
 }

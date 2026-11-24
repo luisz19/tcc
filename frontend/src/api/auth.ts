@@ -28,3 +28,12 @@ export async function getProfile() {
   const { data } = await api.get<User>("/auth/profile");
   return data;
 }
+
+export async function updateProfile(data: { name?: string; email?: string }) {
+  const { data: updated } = await api.patch<User>("/auth/profile", data);
+  return updated;
+}
+
+export async function deleteProfile() {
+  await api.delete("/auth/profile");
+}

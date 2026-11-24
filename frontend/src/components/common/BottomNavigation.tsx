@@ -1,4 +1,4 @@
-import { BriefcaseBusiness, House, UsersRound, WalletCards } from "lucide-react";
+import { BriefcaseBusiness, House, UserRound, UsersRound, WalletCards } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 
@@ -7,6 +7,7 @@ const navigationItems = [
   { label: "Projetos", path: "/projects", icon: BriefcaseBusiness },
   { label: "Clientes", path: "/clients", icon: UsersRound },
   { label: "Financeiro", path: "/finance", icon: WalletCards },
+  { label: "Perfil", path: "/profile", icon: UserRound },
 ];
 
 function BottomNavigation() {
@@ -38,7 +39,7 @@ function BottomNavigation() {
             >
               <div
                 className={cn(
-                  "flex h-7 w-12 sm:w-14 items-center justify-center rounded-full transition-all duration-200",
+                  "flex h-7 w-10 sm:w-12 items-center justify-center rounded-full transition-all duration-200",
                   isActive
                     ? "bg-primary-fixed text-primary scale-105"
                     : "text-on-surface-variant group-hover:bg-surface-container/60 group-active:scale-95"

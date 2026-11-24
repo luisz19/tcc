@@ -63,9 +63,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.removeItem('@TCC:user');
   };
 
+  const updateUserData = (updated: User) => {
+    setUser(updated);
+    localStorage.setItem('@TCC:user', JSON.stringify(updated));
+  };
+
   return (
     <AuthContext.Provider
-      value={{ user, loading, isAuthenticated: user !== null, login, register, logout }}
+      value={{
+        user,
+        loading,
+        isAuthenticated: user !== null,
+        login,
+        register,
+        logout,
+        updateUserData,
+      }}
     >
       {children}
     </AuthContext.Provider>
