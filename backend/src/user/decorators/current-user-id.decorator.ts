@@ -1,8 +1,11 @@
 import { createParamDecorator, ExecutionContext } from '@nestjs/common';
 
-export const CurrentUserId = createParamDecorator(
-  (data: unknown, ctx: ExecutionContext): string => {
+export const CurrentUser = createParamDecorator(
+  (data: string | undefined, ctx: ExecutionContext): string => {
     const request = ctx.switchToHttp().getRequest();
-    return request.user?.sub;
+    const user = request.user;
+    return (data ? user?.[data] : user?.sub) as string;
   },
-); // creates a custom decorator that extracts the user ID from the request object. The user ID is expected to be stored in the 'sub' property of the user object, which is typically set by an authentication middleware (e.g., JWT strategy).
+);
+
+export const CurrentUserId = CurrentUser;

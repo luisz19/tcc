@@ -1,6 +1,6 @@
 import { Controller, Get, Query, UseGuards } from '@nestjs/common';
 import { DashboardService } from './dashboard.service';
-import { CurrentUserId } from 'src/user/decorators/current-user-id.decorator';
+import { CurrentUser } from 'src/user/decorators/current-user.decorator';
 import { AuthGuard } from 'src/auth/guards/auth.guard';
 import { DashboardSummaryResponse } from './interface/dashboard-summary.interface';
 
@@ -11,7 +11,7 @@ export class DashboardController {
 
   @Get()
   public async getDashboardSummary(
-    @CurrentUserId() userId: string,
+    @CurrentUser() userId: string,
     @Query('month') month?: number,
     @Query('year') year?: number,
   ): Promise<DashboardSummaryResponse> {

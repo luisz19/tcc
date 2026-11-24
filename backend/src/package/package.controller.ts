@@ -16,7 +16,7 @@ import { Package } from './entities/package.entity';
 import { findOneParams } from 'src/find-one.params';
 import { CreatePackageDto } from './dto/create-package.dto';
 import { UpdatePackageDto } from './dto/update-package.dto';
-import { CurrentUserId } from 'src/user/decorators/current-user-id.decorator';
+import { CurrentUser } from 'src/user/decorators/current-user.decorator';
 import { AuthGuard } from 'src/auth/guards/auth.guard';
 
 @Controller('packages')
@@ -25,19 +25,22 @@ export class PackageController {
   constructor(private readonly packageService: PackageService) {}
 
   @Get()
-  public async findAll(@CurrentUserId() userId: string): Promise<Package[]> {
+  public async findAll(@CurrentUser() userId: string): Promise<Package[]> {
     return this.packageService.findAll(userId);
   }
 
   @Get('/:id')
-  public async findOne(@Param() params: findOneParams): Promise<Package> {
-    return this.packageService.findOneOrFail(params.id);
+  public async findOne(
+    @Param() params: findOneParams,
+    @CurrentUser() userId: string,
+  ): Promise<Package> {
+    return this.packageService.findOneOrFail(params.id, userId);
   }
 
   @Post()
   public async createPackage(
     @Body() createPackageDto: CreatePackageDto,
-    @CurrentUserId() userId: string,
+    @CurrentUser() userId: string,
   ): Promise<Package> {
     return this.packageService.createPackage({
       ...createPackageDto,
@@ -49,15 +52,20 @@ export class PackageController {
   public async updatePackage(
     @Param() params: findOneParams,
     @Body() updatePackageDto: UpdatePackageDto,
+    @CurrentUser() userId: string,
   ): Promise<Package> {
-    return this.packageService.updatePackage(params.id, updatePackageDto);
+    return this.packageService.updatePackage(
+      params.id,
+      userId,
+      updatePackageDto,
+    );
   }
 
   @Delete('/:id')
   @HttpCode(HttpStatus.NO_CONTENT)
   public async deletePackage(
     @Param() params: findOneParams,
-    @CurrentUserId() userId: string,
+    @CurrentUser() userId: string,
     @Query('confirm') confirm?: string,
   ): Promise<void> {
     return this.packageService.deletePackage(
