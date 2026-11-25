@@ -35,8 +35,12 @@ export class FinancialService {
     return query.getMany();
   }
 
-  async findOneOrFail(id: string): Promise<Financial> {
-    const financial = await this.financialRepository.findOneBy({ id });
+  async findOneOrFail(id: string, userId?: string): Promise<Financial> {
+    const where: { id: string; userId?: string } = { id };
+    if (userId) {
+      where.userId = userId;
+    }
+    const financial = await this.financialRepository.findOneBy(where);
 
     if (!financial) {
       throw new NotFoundException();
@@ -45,8 +49,8 @@ export class FinancialService {
     return financial;
   }
 
-  async findOne(id: string): Promise<Financial> {
-    const financial = await this.findOneOrFail(id);
+  async findOne(id: string, userId?: string): Promise<Financial> {
+    const financial = await this.findOneOrFail(id, userId);
     return financial;
   }
 
@@ -67,15 +71,19 @@ export class FinancialService {
   async updateFinancial(
     id: string,
     updateFinancialDto: UpdateFinancialDto,
+    userId?: string,
   ): Promise<Financial> {
-    const financial = await this.findOneOrFail(id);
+    const financial = await this.findOneOrFail(id, userId);
 
     Object.assign(financial, updateFinancialDto);
     return this.financialRepository.save(financial);
   }
 
-  async showProjectBalance(projectId: string): Promise<number> {
-    const balance = await this.calculateProjectBalance(projectId);
+  async showProjectBalance(
+    projectId: string,
+    userId?: string,
+  ): Promise<number> {
+    const balance = await this.calculateProjectBalance(projectId, userId);
     return balance;
   }
 
@@ -141,11 +149,19 @@ export class FinancialService {
     };
   }
 
-  async findFinancialByProjectId(projectId: string): Promise<Financial[]> {
+  async findFinancialByProjectId(
+    projectId: string,
+    userId?: string,
+  ): Promise<Financial[]> {
+    const where: any = {
+      project: { id: projectId },
+    };
+    if (userId) {
+      where.userId = userId;
+    }
+
     const financials = await this.financialRepository.find({
-      where: {
-        project: { id: projectId },
-      },
+      where,
       order: {
         date: 'DESC',
       },
@@ -154,8 +170,8 @@ export class FinancialService {
     return financials;
   }
 
-  async deleteFinancial(id: string): Promise<void> {
-    const financial = await this.findOneOrFail(id);
+  async deleteFinancial(id: string, userId?: string): Promise<void> {
+    const financial = await this.findOneOrFail(id, userId);
 
     await this.financialRepository.delete(financial.id);
   }
@@ -166,12 +182,20 @@ export class FinancialService {
     });
   }
 
-  private async calculateProjectBalance(projectId: string): Promise<number> {
+  private async calculateProjectBalance(
+    projectId: string,
+    userId?: string,
+  ): Promise<number> {
+    const where: any = {
+      project: { id: projectId },
+      status: FinancialStatus.PAID,
+    };
+    if (userId) {
+      where.userId = userId;
+    }
+
     const movements = await this.financialRepository.find({
-      where: {
-        project: { id: projectId },
-        status: FinancialStatus.PAID,
-      },
+      where,
     });
 
     return movements.reduce((balance, movement) => {

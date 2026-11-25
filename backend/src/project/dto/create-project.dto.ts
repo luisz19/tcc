@@ -26,11 +26,11 @@ export class CreateProjectDto {
 
   @IsOptional()
   @IsDateString()
-  startAt?: Date;
+  startAt?: string;
 
   @IsOptional()
   @IsDateString()
-  endAt?: Date;
+  endAt?: string;
 
   @IsOptional()
   @IsString()

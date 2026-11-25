@@ -2,8 +2,11 @@ import {
   Body,
   ClassSerializerInterceptor,
   Controller,
+  Delete,
   Get,
-  Request,
+  HttpCode,
+  HttpStatus,
+  Patch,
   Post,
   SerializeOptions,
   UseInterceptors,
@@ -11,12 +14,13 @@ import {
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { CreateUserDto } from '../user/dto/create-user.dto';
+import { UpdateUserDto } from '../user/dto/update-user.dto';
 import { User } from '../user/entities/user.entity';
 import { LoginDto } from './dto/login.dto';
 import { LoginResponse } from './login.response';
-import type { AuthRequest } from './auth.request';
 import { UserService } from '../user/user.service';
 import { AuthGuard } from './guards/auth.guard';
+import { CurrentUser } from '../user/decorators/current-user.decorator';
 
 @Controller('auth')
 @UseInterceptors(ClassSerializerInterceptor)
@@ -46,10 +50,25 @@ export class AuthController {
 
   @Get('profile')
   @UseGuards(AuthGuard)
-  async profile(@Request() request: AuthRequest): Promise<User> {
-    // This endpoint requires authentication, so the user information will be available in the request object
-    const user = await this.userService.findOne(request.user.sub);
+  async profile(@CurrentUser() userId: string): Promise<User> {
+    const user = await this.userService.findOne(userId);
 
     return user;
+  }
+
+  @Patch('profile')
+  @UseGuards(AuthGuard)
+  async updateProfile(
+    @CurrentUser() userId: string,
+    @Body() updateUserDto: UpdateUserDto,
+  ): Promise<User> {
+    return this.userService.update(userId, updateUserDto);
+  }
+
+  @Delete('profile')
+  @UseGuards(AuthGuard)
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async deleteProfile(@CurrentUser() userId: string): Promise<void> {
+    return this.userService.deleteUser(userId);
   }
 }

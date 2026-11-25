@@ -16,7 +16,7 @@ import { Client } from './entities/client.entity';
 import { findOneParams } from 'src/find-one.params';
 import { CreateClientDto } from './dto/create-client.dto';
 import { UpdateClientDto } from './dto/update-client';
-import { CurrentUserId } from 'src/user/decorators/current-user-id.decorator';
+import { CurrentUser } from 'src/user/decorators/current-user.decorator';
 import { AuthGuard } from 'src/auth/guards/auth.guard';
 import { Project } from 'src/project/entities/project.entity';
 
@@ -27,7 +27,7 @@ export class ClientController {
 
   @Get()
   public async findAll(
-    @CurrentUserId() userId: string,
+    @CurrentUser() userId: string,
     @Query('name') name?: string,
     @Query('phone') phone?: string,
   ): Promise<Client[]> {
@@ -37,7 +37,7 @@ export class ClientController {
   @Get('/:id')
   public async findOne(
     @Param() params: findOneParams,
-    @CurrentUserId() userId: string,
+    @CurrentUser() userId: string,
   ): Promise<Client> {
     return this.clientService.findOneOrFail(params.id, userId);
   }
@@ -45,7 +45,7 @@ export class ClientController {
   @Get('/:id/projects')
   public async findProjectsByClientId(
     @Param() params: findOneParams,
-    @CurrentUserId() userId: string,
+    @CurrentUser() userId: string,
   ): Promise<Partial<Project>[]> {
     return this.clientService.findProjectsByClientId(params.id, userId);
   }
@@ -53,7 +53,7 @@ export class ClientController {
   @Post()
   public async createClient(
     @Body() createClientDto: CreateClientDto,
-    @CurrentUserId() userId: string,
+    @CurrentUser() userId: string,
   ): Promise<Client> {
     return this.clientService.createClient({
       ...createClientDto,
@@ -65,7 +65,7 @@ export class ClientController {
   public async updateClient(
     @Param() params: findOneParams,
     @Body() updateClientDto: UpdateClientDto,
-    @CurrentUserId() userId: string,
+    @CurrentUser() userId: string,
   ): Promise<Client> {
     return this.clientService.updateClient(params.id, userId, updateClientDto);
   }
@@ -74,7 +74,7 @@ export class ClientController {
   @HttpCode(HttpStatus.NO_CONTENT)
   public async deleteClient(
     @Param() params: findOneParams,
-    @CurrentUserId() userId: string,
+    @CurrentUser() userId: string,
     @Query('confirm') confirm?: string,
   ): Promise<void> {
     await this.clientService.deleteClient(

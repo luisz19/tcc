@@ -28,8 +28,12 @@ export class PackageService {
     return query.getMany();
   }
 
-  async findOneOrFail(id: string): Promise<Package> {
-    const packageProject = await this.packageRepository.findOneBy({ id });
+  async findOneOrFail(id: string, userId?: string): Promise<Package> {
+    const where: { id: string; userId?: string } = { id };
+    if (userId) {
+      where.userId = userId;
+    }
+    const packageProject = await this.packageRepository.findOneBy(where);
 
     if (!packageProject) {
       throw new NotFoundException();
@@ -38,8 +42,8 @@ export class PackageService {
     return packageProject;
   }
 
-  async findOne(id: string): Promise<Package> {
-    const packageProject = await this.findOneOrFail(id);
+  async findOne(id: string, userId?: string): Promise<Package> {
+    const packageProject = await this.findOneOrFail(id, userId);
     return packageProject;
   }
 
@@ -73,8 +77,30 @@ export class PackageService {
   async updatePackage(
     id: string,
     updatePackageDto: UpdatePackageDto,
+    userId?: string,
+  ): Promise<Package>;
+  async updatePackage(
+    id: string,
+    userId: string,
+    updatePackageDto: UpdatePackageDto,
+  ): Promise<Package>;
+  async updatePackage(
+    id: string,
+    param2: string | UpdatePackageDto,
+    param3?: UpdatePackageDto | string,
   ): Promise<Package> {
-    const packageProject = await this.findOneOrFail(id);
+    let userId: string | undefined;
+    let updatePackageDto: UpdatePackageDto;
+
+    if (typeof param2 === 'string') {
+      userId = param2;
+      updatePackageDto = param3 as UpdatePackageDto;
+    } else {
+      updatePackageDto = param2;
+      userId = param3 as string | undefined;
+    }
+
+    const packageProject = await this.findOneOrFail(id, userId);
 
     if (updatePackageDto.base_price !== undefined) {
       this.validateBasePrice(updatePackageDto.base_price);

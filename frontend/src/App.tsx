@@ -6,6 +6,7 @@ import Projects from './pages/Projects'
 import Packages from './pages/Packages'
 import Dashboard from './pages/Dashboard'
 import Financial from './pages/Financial'
+import Profile from './pages/Profile'
 import FinancialForm from './pages/financials/FinancialForm'
 import ClientForm from './pages/clients/ClientForm'
 import ClientDetails from './pages/clients/ClientDetails'
@@ -139,6 +140,8 @@ function App() {
         <Route path="/finance/new" element={<FinancialNewRoute />} />
         <Route path="/finance/:id/edit" element={<FinancialEditRoute financial={selectedFinancial} />} />
         
+        <Route path="/profile" element={<Profile />} />
+
         <Route path="*" element={<Navigate to="/home" replace />} />
       </Route>
     </Routes>
